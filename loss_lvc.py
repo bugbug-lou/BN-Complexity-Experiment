@@ -61,7 +61,7 @@ for t in range(testtime):
         print(f'{datetime.datetime.now()} No.{t} Complete!')
     ## parameters
     epochs = t  ## training time
-    MC_sample = 500  ## number of sampling
+    MC_sample = 50  ## number of sampling
     n = 7  ## dimension of input data, user-defined
     m = 2 ** n  ## number of data points
     k = 2 ** m
@@ -180,8 +180,8 @@ for t in range(testtime):
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         ## define optimizer
-        optimizer1 = optim.SGD(model1.parameters(), lr=0.01, momentum=0.9)
-        optimizer2 = optim.SGD(model2.parameters(), lr=0.01, momentum=0.9)
+        optimizer1 = optim.SGD(model1.parameters(), lr=1e-4, momentum=0.9)
+        optimizer2 = optim.SGD(model2.parameters(), lr=1e-4, momentum=0.9)
 
         for epoc in range(epochs):
             train(model1, loss, optimizer1, XTrain, YTrain)
