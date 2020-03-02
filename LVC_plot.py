@@ -181,8 +181,8 @@ for t in range(testtime):
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         ## define optimizer
-        optimizer1 = optim.SGD(model1.parameters(), lr=0.0001, momentum=0.9)
-        optimizer2 = optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
+        optimizer1 = optim.Adam(model1)
+        optimizer2 = optim.Adam(model2)
 
         for epoc in range(epocs):
             train(model1, loss, optimizer1, XTrain, YTrain)
