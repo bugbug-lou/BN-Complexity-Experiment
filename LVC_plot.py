@@ -140,7 +140,6 @@ for t in range(testtime):
     def predict(model, inputs):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
-
         logits = model.forward(inputs)
         return logits
 
@@ -163,7 +162,6 @@ for t in range(testtime):
         model1.add_module('FC2', torch.nn.Linear(neu, neu))
         model1.add_module('relu2', torch.nn.ReLU())
         model1.add_module('FC3', torch.nn.Linear(neu, neu))
-        model1.add_module('relu2', torch.nn.ReLU())
 
         ##model1.add_module('FC4', torch.nn.Linear(neu,1))
         #   #model1.add_module('relu4', torch.nn.ReLU())
@@ -178,8 +176,8 @@ for t in range(testtime):
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         ## define optimizer
-        optimizer1 = optim.Adam(model1)
-        optimizer2 = optim.Adam(model2)
+        optimizer1 = optim.Adam(model1.parameters())
+        optimizer2 = optim.Adam(model2.parameters())
 
         for epoc in range(epocs):
             train(model1, loss, optimizer1, XTrain, YTrain)
