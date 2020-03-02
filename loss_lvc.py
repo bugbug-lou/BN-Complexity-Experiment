@@ -50,7 +50,7 @@ def get_max_freq(x):
 def get_LVComplexity(x):
     return lempel_ziv_complexity(array_to_string(x))
 
-testtime = 30
+testtime = 50
 Loss_nonBN = torch.zeros(testtime)
 Loss_BN = torch.zeros(testtime)
 non_BN_mean_complexity = torch.zeros(testtime)
@@ -61,7 +61,7 @@ for t in range(testtime):
         print(f'{datetime.datetime.now()} No.{t} Complete!')
     ## parameters
     epochs = t  ## training time
-    MC_sample = 100  ## number of sampling
+    MC_sample = 1000  ## number of sampling
     n = 7  ## dimension of input data, user-defined
     m = 2 ** n  ## number of data points
     k = 2 ** m
