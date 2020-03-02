@@ -32,7 +32,7 @@ def output_anal(x):
 def get_freq(x):
     T = collections.Counter(x)
     Y = np.array(list(T.values()), dtype=np.longfloat)
-    Y = Y / times
+    Y = Y / MC_sample
     Y = np.sort(Y)
     Y = Y[::-1]
     return Y
@@ -55,12 +55,13 @@ Loss_nonBN = torch.zeros(testtime)
 Loss_BN = torch.zeros(testtime)
 non_BN_mean_complexity = torch.zeros(testtime)
 BN_mean_complexity = torch.zeros(testtime)
+
 for t in range(testtime):
     if t % (testtime / 5) == 0:
         print(f'{datetime.datetime.now()} No.{t} Complete!')
     ## parameters
-    epocs = t  ## training time
-    times = 100  ## number of sampling
+    epochs = t  ## training time
+    MC_sample = 100  ## number of sampling
     n = 7  ## dimension of input data, user-defined
     m = 2 ** n  ## number of data points
     k = 2 ** m
@@ -144,13 +145,13 @@ for t in range(testtime):
 
 
     ## the main program
-    L_nonBN = torch.zeros(times)
-    L_BN = torch.zeros(times)
-    Complexity_agg_BN = torch.zeros(times)
-    Complexity_agg = torch.zeros(times)
+    L_nonBN = torch.zeros(MC_sample)
+    L_BN = torch.zeros(MC_sample)
+    Complexity_agg_BN = torch.zeros(MC_sample)
+    Complexity_agg = torch.zeros(MC_sample)
 
     h = 0
-    while (h < times):
+    while (h < MC_sample):
         ## initialize model
         model1 = torch.nn.Sequential()  ## model without batch normalization
         model2 = torch.nn.Sequential()  ## model with batch normalization
@@ -182,7 +183,7 @@ for t in range(testtime):
         optimizer1 = optim.SGD(model1.parameters(), lr=0.01, momentum=0.9)
         optimizer2 = optim.SGD(model2.parameters(), lr=0.01, momentum=0.9)
 
-        for epoc in range(epocs):
+        for epoc in range(epochs):
             train(model1, loss, optimizer1, XTrain, YTrain)
             train(model2, loss, optimizer2, XTrain, YTrain)
 
@@ -212,8 +213,8 @@ Ma = max(max(BN_mean_complexity),max(non_BN_mean_complexity))
 X = np.arange(testtime)
 #plt.plot(X,Loss_nonBN, label="Loss, no BatchNorm")
 #plt.plot(X,Loss_BN label="Loss, BatchNorm")
-plt.plot(X,non_BN_mean_complexity, label="mean complexity, no BatchNorm")
-plt.plot(X,BN_mean_complexity,label="mean complexity, BatchNorm")
+plt.plot(X,non_BN_mean_complexity, label="Mean output complexity, NN")
+plt.plot(X,BN_mean_complexity,label="Mean output complexity, NN with BatchNorm")
 plt.xlabel('Epocs')
 plt.ylabel('mean complexity')
 plt.legend(loc="upper right")
