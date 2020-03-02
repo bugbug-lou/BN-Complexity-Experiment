@@ -220,6 +220,5 @@ plt.ylabel('mean complexity')
 plt.legend(loc="upper right")
 plt.xlim(1, testtime)
 plt.ylim(M, Ma)
+plt.savefig('lvc.png')
 plt.show()
-
-
