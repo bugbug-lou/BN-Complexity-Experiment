@@ -17,7 +17,7 @@ def array_to_string(x):
         y += str(int(l))
     return y
 
-def output_anal(x):
+def Output(x):
     a = x.size()[0]
     y = torch.zeros(a)
     for i in range(a):
@@ -75,6 +75,8 @@ m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
 epochs = 30
+mean = 0.0 ## mean of initialization
+scale = 1.0 ## var of initialization
 
 ## initialize data sets as binary strings
 data = np.zeros([m, n])
@@ -116,7 +118,7 @@ non_BN_mean_complexity = torch.zeros(epochs)
 BN_mean_complexity = torch.zeros(epochs)
 
 # initialize MC number of models
-MC_num = 500
+MC_num = 100
 model1s, optimizer1s = [], []
 model2s, optimizer2s = [], []
 
@@ -133,9 +135,9 @@ for MC in range(MC_num):
     model1.add_module('FC2', torch.nn.Linear(neu, neu))
     model1.add_module('relu2', torch.nn.ReLU())
     model1.add_module('FC3', torch.nn.Linear(neu, neu))
-
-    # model1.add_module('FC4', torch.nn.Linear(neu,1))
-    # model1.add_module('relu4', torch.nn.ReLU())
+    torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
+    torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
+    torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
 
     # add some layers for model 2, this is with BN
     model2.add_module('FC1', torch.nn.Linear(n, neu))
@@ -145,7 +147,10 @@ for MC in range(MC_num):
     model2.add_module('bn2', torch.nn.BatchNorm1d(neu))
     model2.add_module('relu2', torch.nn.ReLU())
     model2.add_module('FC3', torch.nn.Linear(neu, 2))
-
+    with torch.no_grad():
+        model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
+        model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
+        model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
     # define optimizer
     optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
     optimizer2 = optim.Adam(model2.parameters(), lr=0.01)
@@ -198,9 +203,13 @@ X = np.arange(epochs)
 ax1.plot(X, error_nonBN, label="Error, NN")
 ax1.plot(X, error_BN, label="Error, NN with batch norm")
 ax1.legend(loc="upper right")
+ax1.set_xlabel('epochs')
+ax1.set_ylabel('error rates')
 ax2.plot(X, non_BN_mean_complexity, label="Mean complexity, NN")
 ax2.plot(X, BN_mean_complexity, label="Mean complexity, NN with batch norm")
 ax2.legend(loc="upper right")
+ax2.set_xlabel('epochs')
+ax2.set_ylabel('mean complexity')
 plt.savefig('lvc_lc.png')
 plt.show()
 
