@@ -60,7 +60,7 @@ for t in range(testtime):
         print(f'{datetime.datetime.now()} No.{t} Complete!')
     ## parameters
     epocs = t  ## training time
-    times = 100  ## number of sampling
+    times = 50  ## number of sampling
     n = 7  ## dimension of input data, user-defined
     m = 2 ** n  ## number of data points
     k = 2 ** m
@@ -181,8 +181,8 @@ for t in range(testtime):
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         ## define optimizer
-        optimizer1 = optim.SGD(model1.parameters(), lr=0.01, momentum=0.9)
-        optimizer2 = optim.SGD(model2.parameters(), lr=0.01, momentum=0.9)
+        optimizer1 = optim.SGD(model1.parameters(), lr=0.0001, momentum=0.9)
+        optimizer2 = optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
 
         for epoc in range(epocs):
             train(model1, loss, optimizer1, XTrain, YTrain)
@@ -221,5 +221,6 @@ ax1.legend(loc="upper right")
 ax2.plot(X,non_BN_mean_complexity, label="mean complexity, no BatchNorm")
 ax2.plot(X,BN_mean_complexity,label="mean complexity, BatchNorm")
 ax2.legend(loc="upper right")
+plt.savefig('lvc_lc.png')
 plt.show()
 
