@@ -198,7 +198,7 @@ for t in range(testtime):
         b = lempel_ziv_complexity(array_to_string(Output_2))
         Complexity_agg[h] = a
         Complexity_agg_BN[h] = b
-        diff_lvc[h] = a - b
+        # diff_lvc[h] = a - b
         h = h + 1
 
     Loss_nonBN[t] = torch.mean(L_nonBN)
