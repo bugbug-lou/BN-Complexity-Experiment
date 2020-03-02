@@ -164,9 +164,6 @@ for t in range(testtime):
         model1.add_module('relu2', torch.nn.ReLU())
         model1.add_module('FC3', torch.nn.Linear(neu, neu))
         model1.add_module('relu2', torch.nn.ReLU())
-        model1.add_module('FC4', torch.nn.Linear(neu, neu))
-        model1.add_module('relu2', torch.nn.ReLU())
-        model1.add_module('FC5', torch.nn.Linear(neu, 2))
 
         ##model1.add_module('FC4', torch.nn.Linear(neu,1))
         #   #model1.add_module('relu4', torch.nn.ReLU())
