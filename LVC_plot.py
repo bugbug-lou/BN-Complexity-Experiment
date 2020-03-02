@@ -56,7 +56,7 @@ def get_error(model, inputs, labels):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
         logits = model.forward(inputs)
-        predicts = output_anal(logits)
+        predicts = Output(logits)
         k = predicts - labels
         a = torch.sum(torch.abs(k))
         return a/m
@@ -179,8 +179,8 @@ for epoch in range(epochs):
         data = data.float()
         Aggregate1 = predict(model1s[MC], data)
         Aggregate2 = predict(model2s[MC], data)
-        Output_1 = output_anal(Aggregate1)
-        Output_2 = output_anal(Aggregate2)
+        Output_1 = Output(Aggregate1)
+        Output_2 = Output(Aggregate2)
         L_nonBN[MC] = get_error(model1s[MC], data, target)
         L_BN[MC] = get_error(model2s[MC], data, target)
         a = lempel_ziv_complexity(array_to_string(Output_1))
