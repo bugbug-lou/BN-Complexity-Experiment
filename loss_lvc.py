@@ -50,7 +50,7 @@ def get_max_freq(x):
 def get_LVComplexity(x):
     return lempel_ziv_complexity(array_to_string(x))
 
-testtime = 50
+testtime = 30
 Loss_nonBN = torch.zeros(testtime)
 Loss_BN = torch.zeros(testtime)
 non_BN_mean_complexity = torch.zeros(testtime)
@@ -61,7 +61,7 @@ for t in range(testtime):
         print(f'{datetime.datetime.now()} No.{t} Complete!')
     ## parameters
     epochs = t  ## training time
-    MC_sample = 1000  ## number of sampling
+    MC_sample = 500  ## number of sampling
     n = 7  ## dimension of input data, user-defined
     m = 2 ** n  ## number of data points
     k = 2 ** m
@@ -213,10 +213,11 @@ Ma = max(max(BN_mean_complexity),max(non_BN_mean_complexity))
 X = np.arange(testtime)
 #plt.plot(X,Loss_nonBN, label="Loss, no BatchNorm")
 #plt.plot(X,Loss_BN label="Loss, BatchNorm")
-plt.plot(X,non_BN_mean_complexity, label="Mean output complexity, NN")
-plt.plot(X,BN_mean_complexity,label="Mean output complexity, NN with BatchNorm")
+plt.plot(X,non_BN_mean_complexity, label="NN")
+plt.plot(X,BN_mean_complexity,label="NN with BatchNorm")
 plt.xlabel('Epocs')
-plt.ylabel('mean complexity')
+plt.ylabel('Mean output complexity')
+plt.title(f'{500} Monte Carlo NNs')
 plt.legend(loc="upper right")
 plt.xlim(1, testtime)
 plt.ylim(M, Ma)
