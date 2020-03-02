@@ -27,14 +27,6 @@ def output_anal(x):
             y[i] = 1
     return y
 
-def get_freq(x):
-    T = collections.Counter(x)
-    Y = np.array(list(T.values()), dtype=np.longfloat)
-    Y = Y / times
-    Y = np.sort(Y)
-    Y = Y[::-1]
-    return Y
-
 def get_max_freq(x):
     T = collections.Counter(x)
     Y = np.array(list(T.values()), dtype=np.longfloat)
@@ -124,7 +116,7 @@ non_BN_mean_complexity = torch.zeros(epochs)
 BN_mean_complexity = torch.zeros(epochs)
 
 # initialize MC number of models
-MC_num = 100
+MC_num = 500
 model1s, optimizer1s = [], []
 model2s, optimizer2s = [], []
 
@@ -155,8 +147,8 @@ for MC in range(MC_num):
     model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
     # define optimizer
-    optimizer1 = optim.Adam(model1.parameters(), lr=0.1)
-    optimizer2 = optim.Adam(model2.parameters(), lr=0.1)
+    optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
+    optimizer2 = optim.Adam(model2.parameters(), lr=0.01)
 
     model1s.append(model1)
     model2s.append(model2)
@@ -203,11 +195,11 @@ Ma = max(max(BN_mean_complexity), max(non_BN_mean_complexity))
 T = min(min(error_BN), min(error_nonBN))
 Ta = max(max(error_BN), max(error_nonBN))
 X = np.arange(epochs)
-ax1.plot(X, error_nonBN, label="Error, no BatchNorm")
-ax1.plot(X, error_BN, label="Error, BatchNorm")
+ax1.plot(X, error_nonBN, label="Error, NN")
+ax1.plot(X, error_BN, label="Error, NN with batch norm")
 ax1.legend(loc="upper right")
-ax2.plot(X, non_BN_mean_complexity, label="mean complexity, no BatchNorm")
-ax2.plot(X, BN_mean_complexity, label="mean complexity, BatchNorm")
+ax2.plot(X, non_BN_mean_complexity, label="Mean complexity, NN")
+ax2.plot(X, BN_mean_complexity, label="Mean complexity, NN with batch norm")
 ax2.legend(loc="upper right")
 plt.savefig('lvc_lc.png')
 plt.show()
