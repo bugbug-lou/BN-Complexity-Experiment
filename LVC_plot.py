@@ -55,6 +55,7 @@ def train(model, loss, optimizer, inputs, labels):
 def get_error(model, inputs, labels):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
+        labels = Variable(labels, requires_grad=False)
         logits = model.forward(inputs)
         predicts = output_anal(logits)
         k = predicts - labels
@@ -74,7 +75,7 @@ m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 30
+epochs = 30 ## training time
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
@@ -118,7 +119,7 @@ non_BN_mean_complexity = torch.zeros(epochs)
 BN_mean_complexity = torch.zeros(epochs)
 
 # initialize MC number of models
-MC_num = 100
+MC_num = 100  ## number of models
 model1s, optimizer1s = [], []
 model2s, optimizer2s = [], []
 
@@ -134,10 +135,11 @@ for MC in range(MC_num):
     model1.add_module('relu1', torch.nn.ReLU())
     model1.add_module('FC2', torch.nn.Linear(neu, neu))
     model1.add_module('relu2', torch.nn.ReLU())
-    model1.add_module('FC3', torch.nn.Linear(neu, neu))
-    torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
-    torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
-    torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
+    model1.add_module('FC3', torch.nn.Linear(neu, 2))
+    with torch.no_grad():
+        torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
+        torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
+        torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
 
     # add some layers for model 2, this is with BN
     model2.add_module('FC1', torch.nn.Linear(n, neu))
@@ -160,9 +162,6 @@ for MC in range(MC_num):
     optimizer1s.append(optimizer1)
     optimizer2s.append(optimizer2)
 
-# for epoc in range(epocs):
-# #     train(model1, loss, optimizer1, XTrain, YTrain)
-# #     train(model2, loss, optimizer2, XTrain, YTrain)
 
 
 for epoch in range(epochs):
