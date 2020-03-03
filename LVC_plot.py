@@ -75,7 +75,7 @@ m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 30 ## training time
+epochs = 50 ## training time
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
@@ -119,7 +119,7 @@ non_BN_mean_complexity = torch.zeros(epochs)
 BN_mean_complexity = torch.zeros(epochs)
 
 # initialize MC number of models
-MC_num = 100  ## number of models
+MC_num = 500  ## number of models
 model1s, optimizer1s = [], []
 model2s, optimizer2s = [], []
 
@@ -154,8 +154,8 @@ for MC in range(MC_num):
         model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
         model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
     # define optimizer
-    optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
-    optimizer2 = optim.Adam(model2.parameters(), lr=0.01)
+    optimizer1 = optim.Adam(model1.parameters(), lr=0.02)
+    optimizer2 = optim.Adam(model2.parameters(), lr=0.02)
 
     model1s.append(model1)
     model2s.append(model2)
