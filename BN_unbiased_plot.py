@@ -29,7 +29,7 @@ epochs, dims, datas, targets, XTrains, YTrains, TLVS= [], [], [], [], [], [], []
 epochs.append(int(3))
 epochs.append(int(10))
 for i in range(2,9):
-    epochs.append(int(25))
+    epochs.append(int(36))
 
 
 ## target of LVC: 7
