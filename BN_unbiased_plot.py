@@ -359,7 +359,7 @@ for MC in range(9):
         Output_1 = Output(Aggregate1)
         Output_2 = Output(Aggregate2)
         GE[i] = get_error(model1, datas[MC], targets[MC])
-        GE_BN[MC] = get_error(model2, datas[MC], targets[MC])
+        GE_BN[i] = get_error(model2, datas[MC], targets[MC])
         LVC[i] = lempel_ziv_complexity(array_to_string(Output_1))
         LVC_BN[i] = lempel_ziv_complexity(array_to_string(Output_2))
 
