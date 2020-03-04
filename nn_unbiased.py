@@ -111,9 +111,9 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-mod_num = 50  ## numbers of models used for each example
+mod_num = 100  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
-scale = 2.5  # STD of initialization
+scale = 10  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
@@ -340,10 +340,10 @@ for MC in range(total_MC):
 
         # add some layers for model 2, this is with BN
         model2.add_module('FC1', torch.nn.Linear(n, neu))
-        model2.add_module('bn1', torch.nn.BatchNorm1d(neu))
+        model2.add_module('bn1', torch.nn.BatchNorm1d(neu, momentum=0.1))
         model2.add_module('relu1', torch.nn.ReLU())
         model2.add_module('FC2', torch.nn.Linear(neu, neu))
-        model2.add_module('bn2', torch.nn.BatchNorm1d(neu))
+        model2.add_module('bn2', torch.nn.BatchNorm1d(neu, momentum=0.1))
         model2.add_module('relu2', torch.nn.ReLU())
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
@@ -408,7 +408,7 @@ ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
 for h in range(9):
     ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='NN', c='green', alpha=0.5)
     ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='NN+BN', c='red', alpha=0.5)
-    ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
+    # ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
     print(h, GE_outputs[h])
     ax[h].legend(loc="upper right")
     ax[h].set_xlabel(f'Target Complexity: {TLVS[h]}')
