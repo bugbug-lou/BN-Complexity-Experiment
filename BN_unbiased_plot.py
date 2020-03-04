@@ -304,16 +304,18 @@ LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_outpu
 ## define loss function
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
+LVC = torch.zeros(mod_num)
+LVC_BN = torch.zeros(mod_num)
+GE = torch.zeros(mod_num)
+GE_BN = torch.zeros(mod_num)
+LVC_UE = torch.zeros(mod_num)
+GE_UE = torch.zeros(mod_num)
+
 ## train BN models and non-BN models based on different targets
 for MC in range(9):
     print('sample' + str(MC) + 'complete!')
     n = dims[MC]
-    LVC = torch.zeros(mod_num)
-    LVC_BN = torch.zeros(mod_num)
-    GE = torch.zeros(mod_num)
-    GE_BN = torch.zeros(mod_num)
-    LVC_UE = torch.zeros(mod_num)
-    GE_UE = torch.zeros(mod_num)
+    
     for i in range(mod_num):
         model1 = torch.nn.Sequential()  # model without batch normalization
         model2 = torch.nn.Sequential()  # model with batch normalization
