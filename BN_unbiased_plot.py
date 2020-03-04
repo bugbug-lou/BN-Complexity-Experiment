@@ -10,13 +10,65 @@ from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
 
+def array_to_string(x):
+    y = ''
+    for l in x:
+        y += str(int(l))
+    return y
 
+def Output(x):
+    a = x.size()[0]
+    y = torch.zeros(a)
+    for i in range(a):
+        if x[i, 0] > x[i, 1]:
+            y[i] = 0
+        else:
+            y[i] = 1
+    return y
+
+def get_max_freq(x):
+    T = collections.Counter(x)
+    Y = np.array(list(T.values()), dtype=np.longfloat)
+    a = np.max(Y)
+    for f in list(T.keys()):
+        if T[f] == a:
+            return f
+
+def get_LVComplexity(x):
+    return lempel_ziv_complexity(array_to_string(x))
+
+def train(model, loss, optimizer, inputs, labels):
+        model.train()
+        inputs = Variable(inputs, requires_grad=False)
+        labels = Variable(labels, requires_grad=False)
+        # reset gradient
+        optimizer.zero_grad()
+        # forward loop
+        logits = model.forward(inputs)
+        output = loss.forward(logits, labels)
+        # backward
+        output.backward()
+        optimizer.step()
+        return output.item()
+
+def get_error(model, inputs, labels, m):
+        model.eval()
+        inputs = Variable(inputs, requires_grad=False)
+        labels = Variable(labels, requires_grad=False)
+        logits = model.forward(inputs)
+        predicts = Output(logits)
+        k = predicts - labels
+        a = torch.sum(torch.abs(k))
+        return a/m
+
+def predict(model, inputs):
+        model.eval()
+        inputs = Variable(inputs, requires_grad=False)
+        logits = model.forward(inputs)
+        return logits
 
 ## some parameters
 n = 10  ## dimension of input data, user-defined
-m = 2 ** n  ## number of data points
-m_2 = 2 ** (n - 1)
-m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
 mod_num = 20 ## numbers of models used for each example
@@ -25,7 +77,7 @@ scale = 1.0 ## var of initialization
 
 
 ## choose target, need to choose targets of different LVC
-epochs, dims, datas, targets, XTrains, YTrains, TLVC= [], [], [], [], [], [], []
+epochs, dims, datas, targets, XTrains, YTrains, TLVS= [], [], [], [], [], [], []
 epochs.append(int(3))
 epochs.append(int(10))
 for i in range(2,9):
@@ -62,7 +114,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(7))
+TLVS.append(int(7))
 
 ## target of LVC: 31
 dim = 8
@@ -93,7 +145,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(31))
+TLVS.append(int(31))
 
 
 ## target of LVC: 48
@@ -124,7 +176,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(48))
+TLVS.append(int(48))
 
 
 ## target of LVC: 65
@@ -153,7 +205,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(65))
+TLVS.append(int(65))
 
 ## target of LVC: 86
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -181,7 +233,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(86))
+TLVS.append(int(86))
 
 ## target of LVC: 108
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -209,7 +261,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(108))
+TLVS.append(int(108))
 
 ## targe of LVC：124
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -237,7 +289,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(124))
+TLVS.append(int(124))
 
 ## targe of LVC：142
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -265,7 +317,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(142))
+TLVS.append(int(142))
 
 ## targe of LVC：176
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -295,7 +347,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVC.append(int(176))
+TLVS.append(int(176))
 
 ## outputs
 LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_output_UEs = [], [], [], [], [], []
@@ -304,18 +356,16 @@ LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_outpu
 ## define loss function
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
-LVC = torch.zeros(mod_num)
-LVC_BN = torch.zeros(mod_num)
-GE = torch.zeros(mod_num)
-GE_BN = torch.zeros(mod_num)
-LVC_UE = torch.zeros(mod_num)
-GE_UE = torch.zeros(mod_num)
-
 ## train BN models and non-BN models based on different targets
 for MC in range(9):
     print('sample' + str(MC) + 'complete!')
     n = dims[MC]
-    
+    LVC = torch.zeros(mod_num)
+    LVC_BN = torch.zeros(mod_num)
+    GE = torch.zeros(mod_num)
+    GE_BN = torch.zeros(mod_num)
+    LVC_UE = torch.zeros(mod_num)
+    GE_UE = torch.zeros(mod_num)
     for i in range(mod_num):
         model1 = torch.nn.Sequential()  # model without batch normalization
         model2 = torch.nn.Sequential()  # model with batch normalization
@@ -360,8 +410,8 @@ for MC in range(9):
         Aggregate2 = predict(model2, datas[MC])
         Output_1 = Output(Aggregate1)
         Output_2 = Output(Aggregate2)
-        GE[i] = get_error(model1, datas[MC], targets[MC])
-        GE_BN[i] = get_error(model2, datas[MC], targets[MC])
+        GE[i] = get_error(model1, datas[MC], targets[MC], 2 ** n)
+        GE_BN[i] = get_error(model2, datas[MC], targets[MC], 2 ** n)
         LVC[i] = lempel_ziv_complexity(array_to_string(Output_1))
         LVC_BN[i] = lempel_ziv_complexity(array_to_string(Output_2))
 
@@ -386,10 +436,10 @@ for MC in range(9):
 # produce a plot concerning output function complexities
 fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
 ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
-for i in range(9):
-    ax[i].scatter(LVC_outputs[i], GE_outputs[i], label='Non BN', c='green', alpha=0.5)
-    ax[i].scatter(LVC_output_BNs[i], GE_output_BNs[i], label='BN', c='red', alpha=0.5)
-    ax[i].scatter(LVC_output_UEs[i], GE_output_UEs[i], label='Unbiased Estimator', c='blue', alpha=0.5)
-    ax[i].legend(loc="upper right")
-    ax[i].set_xlabel('Complexity')
-    ax[i].set_ylabel('Error Rates')
+for h in range(9):
+    ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='Non BN', c='green', alpha=0.5)
+    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='BN', c='red', alpha=0.5)
+    ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
+    ax[h].legend(loc="upper right")
+    ax[h].set_xlabel('Complexity')
+    ax[h].set_ylabel('Error Rates')
