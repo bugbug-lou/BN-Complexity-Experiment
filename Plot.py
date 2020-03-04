@@ -1,0 +1,404 @@
+import numpy as np
+import datetime
+import random
+from matplotlib import pyplot as plt
+import multiprocessing
+import torch
+from torch.autograd import Variable
+from torch import optim
+from lempel_ziv_complexity import lempel_ziv_complexity
+import collections
+import argparse
+
+def array_to_string(x):
+    y = ''
+    for l in x:
+        y += str(int(l))
+    return y
+
+def Output(x):
+    a = x.size()[0]
+    y = torch.zeros(a)
+    for i in range(a):
+        if x[i, 0] > x[i, 1]:
+            y[i] = 0
+        else:
+            y[i] = 1
+    return y
+
+def get_max_freq(x):
+    T = collections.Counter(x)
+    Y = np.array(list(T.values()), dtype=np.longfloat)
+    a = np.max(Y)
+    for f in list(T.keys()):
+        if T[f] == a:
+            return f
+
+
+def get_LVComplexity(x):
+    ones = torch.ones(len(x))
+    zeros = torch.zeros(len(x))
+    if torch.all(torch.eq(x, ones)) or torch.all(torch.eq(x, ones)):
+        return 7
+    else:
+        with torch.no_grad():
+            a = N_w(x)
+            y = np.asarray(x)
+            y = y[::-1]
+            b = N_w(y)
+        return np.log2(len(x)) * (a + b)/2
+
+def N_w(S):
+    # get number of words in dictionary
+    i = 0
+    C = 1
+    u = 1
+    v = 1
+    vmax = v
+    while u + v < len(S):
+        if S[i + v] == S[u + v]:
+            v = v + 1
+        else:
+            vmax = max(v, vmax)
+            i = i + 1
+            if i == u:
+                C = C + 1
+                u = u + vmax
+                v = 1
+                i = 0
+                vamx = v
+            else:
+                v = 1
+    if v != 1:
+        C = C + 1
+    return C
+
+def train(model, loss, optimizer, inputs, labels):
+        model.train()
+        inputs = Variable(inputs, requires_grad=False)
+        labels = Variable(labels, requires_grad=False)
+        # reset gradient
+        optimizer.zero_grad()
+        # forward loop
+        logits = model.forward(inputs)
+        output = loss.forward(logits, labels)
+        # backward
+        output.backward()
+        optimizer.step()
+        return output.item()
+
+def get_error(model, inputs, labels, d):
+        model.eval()
+        inputs = Variable(inputs, requires_grad=False)
+        labels = Variable(labels, requires_grad=False)
+        logits = model.forward(inputs)
+        predicts = Output(logits)
+        k = predicts - labels
+        a = torch.sum(torch.abs(k))
+        return a/d
+
+def predict(model, inputs):
+        model.eval()
+        inputs = Variable(inputs, requires_grad=False)
+        logits = model.forward(inputs)
+        return logits
+
+## some parameters
+n = 7 ## dimension of input data, user-defined
+m = 2 ** n  ## number of data points
+m_2 = 2 ** (n - 1)
+m_3 = 2 ** (n - 2)
+predict_threshold = 0.01 ## training accuracy threshold
+layer_num = 3  ## number of layers of the neural network, user-defined
+neu = 40  ## neurons per layer
+mod_num = 30 ## numbers of models used for each example
+mean = 0.0 ## mean of initialization
+scale = 1.0 ## var of initialization
+
+## data: 7 * 128
+data = np.zeros([2 ** n, n], dtype=np.float32)
+for i in range(2 ** n):
+    bin = np.binary_repr(i, n)
+    a = np.array(list(bin), dtype=int)
+    data[i, :] = a
+data = torch.from_numpy(data)
+
+## Training set:
+XTrain = torch.zeros([2 ** (n-1), n])
+XTest = torch.zeros([2 ** (n-1), n])
+for i in range(2 ** (n-1)):
+    XTrain[i,:] = data[2*i,:]
+    XTest[i, :] = data[2 * i + 1, :]
+
+## choose target, need to choose targets of different LVC
+targets, YTrains, YTests, TLVS= [], [], [], []
+
+
+## target of LVC: 7
+t = torch.ones(2 ** n)
+YTrain = torch.zeros(2 ** (n-1))
+YTest = torch.zeros(2 ** (n-1))
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(7))
+
+## target of LVC: 28
+for i in range(m_3):
+    t[i] = 1
+    t[i + m_2] = 1
+    t[i + m_3] = 0
+    t[i + m_3 + m_2] = 0
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(28))
+
+## targe of LVC：49
+for i in range(m):
+    if i%17 == 0 or i%17 == 1 or i%17 == 4 or i%17 == 9 or i%17 == 16 or i%17 == 8 or i%17 == 2 or i%17 == 15:
+        t[i] = 1
+    else:
+        t[i] = 0
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(49))
+
+## targe of LVC：63
+t = torch.tensor([1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
+        0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0.,
+        1., 1.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+
+## targe of LVC：70
+t = torch.tensor([0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 1.,
+        0., 0.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+## targe of LVC：83.5
+t = torch.tensor([0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 1., 1., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0.,
+        0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
+        1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+## targe of LVC：108
+t = torch.tensor([0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0.,
+        0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,
+        1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 1., 0., 0., 0.,
+        0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
+        1., 1., 0., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.,
+        0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1.,
+        0., 0., 0., 0., 1., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1., 0.,
+        1., 0.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+
+## targe of LVC：126
+t = torch.tensor([1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 0., 1., 0., 0., 1., 0.,
+        1., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
+        0., 1., 0., 0., 1., 1., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 1., 1.,
+        1., 1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1.,
+        1., 0., 0., 1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 0., 0., 0., 1., 1.,
+        0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 1., 0., 1., 1., 1., 0., 0., 0.,
+        0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 1., 1., 0.,
+        1., 1.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+## targe of LVC：143
+t = torch.tensor([0., 0., 1., 1., 0., 1., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 1., 0.,
+        0., 1., 0., 0., 1., 1., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 0., 0.,
+        0., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 1., 1., 1., 0., 1.,
+        0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1.,
+        1., 0., 1., 0., 1., 1., 1., 0., 1., 0., 0., 1., 1., 1., 0., 1., 1., 0.,
+        0., 1., 1., 0., 1., 1., 1., 1., 1., 0., 0., 0., 0., 1., 0., 1., 1., 1.,
+        0., 1.])
+for i in range(2 ** (n - 1)):
+    YTrain[i] = t[2 * i]
+    YTest[i] = t[2 * i + 1]
+t = t.long()
+YTrain = YTrain.long()
+YTest = YTest.long()
+targets.append(t)
+YTrains.append(YTrain)
+YTests.append(YTest)
+TLVS.append(int(get_LVComplexity(t)))
+
+## outputs
+LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_output_UEs = [], [], [], [], [], []
+
+
+## define loss function
+loss = torch.nn.CrossEntropyLoss(size_average=True)
+
+## train BN models and non-BN models based on different targets
+for MC in range(9):
+    print('sample' + str(MC) + 'complete!')
+    LVC = torch.zeros(mod_num)
+    LVC_BN = torch.zeros(mod_num)
+    GE = torch.zeros(mod_num)
+    GE_BN = torch.zeros(mod_num)
+    LVC_UE = torch.zeros(mod_num)
+    GE_UE = torch.zeros(mod_num)
+    for i in range(mod_num):
+        model1 = torch.nn.Sequential()  # model without batch normalization
+        model2 = torch.nn.Sequential()  # model with batch normalization
+
+        # add some layers for model 1, this is without BN
+        model1.add_module('FC1', torch.nn.Linear(n, neu))
+        model1.add_module('relu1', torch.nn.ReLU())
+        model1.add_module('FC2', torch.nn.Linear(neu, neu))
+        model1.add_module('relu2', torch.nn.ReLU())
+        model1.add_module('FC3', torch.nn.Linear(neu, 2))
+        with torch.no_grad():
+            torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
+
+        # add some layers for model 2, this is with BN
+        model2.add_module('FC1', torch.nn.Linear(n, neu))
+        model2.add_module('bn1', torch.nn.BatchNorm1d(neu))
+        model2.add_module('relu1', torch.nn.ReLU())
+        model2.add_module('FC2', torch.nn.Linear(neu, neu))
+        model2.add_module('bn2', torch.nn.BatchNorm1d(neu))
+        model2.add_module('relu2', torch.nn.ReLU())
+        model2.add_module('FC3', torch.nn.Linear(neu, 2))
+        with torch.no_grad():
+            torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model2.FC3.weight, mean=mean, std=scale)
+
+        # define optimizer
+        optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
+        optimizer2 = optim.Adam(model2.parameters(), lr=0.01)
+
+        # train until convergence
+        pr1 = 1
+        pr2 = 1
+        while pr1 > predict_threshold:
+            train(model1, loss, optimizer1, XTrain, YTrains[MC])
+            pr1 = get_error(model1, XTrain, YTrains[MC], 2 ** (n-1))
+        while pr2 > predict_threshold:
+            train(model2, loss, optimizer2, XTrain, YTrains[MC])
+            pr2 = get_error(model2, XTrain, YTrains[MC], 2 ** (n-1))
+
+        # prediction
+        Aggregate1 = predict(model1, XTest)
+        Aggregate2 = predict(model2, XTest)
+        Output_1 = Output(Aggregate1)
+        Output_2 = Output(Aggregate2)
+        GE[i] = get_error(model1, XTest, YTests[MC], 2 ** (n-1))
+        GE_BN[i] = get_error(model2, XTest, YTests[MC], 2 ** (n-1))
+        LVC[i] = get_LVComplexity(Output_1)
+        LVC_BN[i] = get_LVComplexity(Output_2)
+
+        # randomly choose a 0-1 string as unbiased estimator
+        zero_ones = np.array([0,1]) # things to choose from
+        dis = np.array([0.5, 0.5])  # probability input for choose function
+        Ori = np.zeros(2 ** (n-1))
+        for j in range(2 ** (n-1)):
+            Ori[j] = np.random.choice(zero_ones, p=dis)
+        predicts = torch.from_numpy(Ori)
+        k = predicts - YTests[MC]
+        a = torch.sum(torch.abs(k))
+        GE_UE[i] = a / 2 ** (n-1)
+        LVC_UE[i] = get_LVComplexity(predicts)
+
+    LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
+    LVC_output_UEs.append(LVC_UE), GE_output_UEs.append(GE_UE)
+
+
+
+
+
+# produce a plot concerning output function complexities
+fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
+ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
+for h in range(9):
+    ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='Non BN', c='green', alpha=0.5)
+    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='BN', c='red', alpha=0.5)
+    ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
+    ax[h].legend(loc="upper right")
+    ax[h].set_xlabel('Target Complexity =' + '' + str(TLVS[h]))
+    ax[h].set_ylabel('Error Rates')
