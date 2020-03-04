@@ -111,7 +111,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-mod_num = 100 ## numbers of models used for each example
+mod_num = 20 ## numbers of models used for each example
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
@@ -316,12 +316,13 @@ loss = torch.nn.CrossEntropyLoss(size_average=True)
 total_MC = 9
 for MC in range(total_MC):
     print('MC sample ' + str(MC) + f'/{total_MC} starts!')
-    LVC = torch.zeros(mod_num)
-    LVC_BN = torch.zeros(mod_num)
-    GE = torch.zeros(mod_num)
-    GE_BN = torch.zeros(mod_num)
-    LVC_UE = torch.zeros(mod_num)
-    GE_UE = torch.zeros(mod_num)
+    LVC = np.zeros(mod_num)
+    LVC_BN = np.zeros(mod_num)
+    GE = np.zeros(mod_num)
+    GE_BN = np.zeros(mod_num)
+    LVC_UE = np.zeros(mod_num)
+    GE_UE = np.zeros(mod_num)
+
     for i in range(mod_num):
         model1 = torch.nn.Sequential()  # model without batch normalization
         model2 = torch.nn.Sequential()  # model with batch normalization
@@ -345,10 +346,17 @@ for MC in range(total_MC):
         model2.add_module('bn2', torch.nn.BatchNorm1d(neu))
         model2.add_module('relu2', torch.nn.ReLU())
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
+        # with torch.no_grad():
+        #     torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
+        #     torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
+        #     torch.nn.init.normal_(model2.FC3.weight, mean=mean, std=scale)
         with torch.no_grad():
-            torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
-            torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
-            torch.nn.init.normal_(model2.FC3.weight, mean=mean, std=scale)
+            for param_cur, param_best in zip(model1.FC1.parameters(), model2.FC1.parameters()):
+                param_cur.data = param_best.data
+            for param_cur, param_best in zip(model1.FC2.parameters(), model2.FC2.parameters()):
+                param_cur.data = param_best.data
+            for param_cur, param_best in zip(model1.FC3.parameters(), model2.FC3.parameters()):
+                param_cur.data = param_best.data
 
         # define optimizer
         optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
@@ -374,6 +382,9 @@ for MC in range(total_MC):
         LVC[i] = get_LVComplexity(Output_1)
         LVC_BN[i] = get_LVComplexity(Output_2)
 
+        del model1
+        del model2
+
         # randomly choose a 0-1 string as unbiased estimator
         zero_ones = np.array([0,1]) # things to choose from
         dis = np.array([0.5, 0.5])  # probability input for choose function
@@ -398,11 +409,12 @@ for MC in range(total_MC):
 fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
 ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
 for h in range(9):
-    ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='Non BN', c='green', alpha=0.5)
-    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='BN', c='red', alpha=0.5)
+    ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='NN', c='green', alpha=0.5)
+    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='NN+BN', c='red', alpha=0.5)
     ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
+    print(h, GE_outputs[h])
     ax[h].legend(loc="upper right")
-    ax[h].set_xlabel('Target Complexity =' + '' + str(TLVS[h]))
-    ax[h].set_ylabel('Error Rates')
+    ax[h].set_xlabel(f'Target Complexity: {TLVS[h]}')
+    ax[h].set_ylabel('Generalization/Test Error')
 
 fig.show()
