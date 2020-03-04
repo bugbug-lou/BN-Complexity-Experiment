@@ -434,8 +434,17 @@ for MC in range(9):
     LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
     LVC_output_UEs.append(LVC_UE), GE_output_UEs.append(GE_UE)
 
-
-
+# produce a plot concerning output function complexities
+fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
+ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
+for h in range(9):
+    ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='NN', c='green', alpha=0.5)
+    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='NN+BN', c='red', alpha=0.5)
+    ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
+    print(h, GE_outputs[h])
+    ax[h].legend(loc="upper right")
+    ax[h].set_xlabel(f'Target Complexity: {TLVS[h]}')
+    ax[h].set_ylabel('Generalization/Test Error')
 
 # plotting GE and complexity
 fig, ax = plt.subplots(nrows=9, ncols=2, figsize=(15, 15),constrained_layout=True)
