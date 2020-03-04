@@ -361,7 +361,7 @@ loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 ## train BN models and non-BN models based on different targets
 for MC in range(9):
-    print('sample' + str(MC) + 'complete!')
+    print('MC sample ' + str(MC) + ' complete!')
     n = dims[MC]
     LVC = torch.zeros(mod_num)
     LVC_BN = torch.zeros(mod_num)
@@ -446,3 +446,5 @@ for h in range(9):
     ax[h].legend(loc="upper right")
     ax[h].set_xlabel('Complexity')
     ax[h].set_ylabel('Error Rates')
+
+fig.show()
