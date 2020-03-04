@@ -111,9 +111,9 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-mod_num = 20 ## numbers of models used for each example
-mean = 0.0 ## mean of initialization
-scale = 1.0 ## var of initialization
+mod_num = 50  ## numbers of models used for each example
+mean = 0.0  ## mean of initialization
+scale = 2.5  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
@@ -346,10 +346,7 @@ for MC in range(total_MC):
         model2.add_module('bn2', torch.nn.BatchNorm1d(neu))
         model2.add_module('relu2', torch.nn.ReLU())
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
-        # with torch.no_grad():
-        #     torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
-        #     torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
-        #     torch.nn.init.normal_(model2.FC3.weight, mean=mean, std=scale)
+
         with torch.no_grad():
             for param_cur, param_best in zip(model1.FC1.parameters(), model2.FC1.parameters()):
                 param_cur.data = param_best.data
@@ -359,8 +356,8 @@ for MC in range(total_MC):
                 param_cur.data = param_best.data
 
         # define optimizer
-        optimizer1 = optim.Adam(model1.parameters(), lr=0.01)
-        optimizer2 = optim.Adam(model2.parameters(), lr=0.01)
+        optimizer1 = optim.Adam(model1.parameters(), lr=0.005)
+        optimizer2 = optim.Adam(model2.parameters(), lr=0.005)
 
         # train until convergence
         pr1 = 1
