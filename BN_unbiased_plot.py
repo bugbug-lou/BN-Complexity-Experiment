@@ -69,6 +69,9 @@ def predict(model, inputs):
 
 ## some parameters
 n = 10  ## dimension of input data, user-defined
+m = 2 ** n  ## number of data points
+m_2 = 2 ** (n - 1)
+m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
 mod_num = 20 ## numbers of models used for each example
