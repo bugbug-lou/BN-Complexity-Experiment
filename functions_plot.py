@@ -52,7 +52,7 @@ def train(model, loss, optimizer, inputs, labels):
         optimizer.step()
         return output.item()
 
-def get_error(model, inputs, labels):
+def get_error(model, inputs, labels, m):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
         labels = Variable(labels, requires_grad=False)
