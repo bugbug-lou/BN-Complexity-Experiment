@@ -108,10 +108,10 @@ n = 7 ## dimension of input data, user-defined
 m = 2 ** n  ## number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
-predict_threshold = 0.01 ## training accuracy threshold
+predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-mod_num = 30 ## numbers of models used for each example
+mod_num = 100 ## numbers of models used for each example
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
@@ -145,8 +145,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(7))
 
 ## target of LVC: 28
@@ -162,8 +162,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(28))
 
 ## targe of LVC：49
@@ -179,8 +179,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(49))
 
 ## targe of LVC：63
@@ -199,8 +199,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 
@@ -220,8 +220,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 ## targe of LVC：83.5
@@ -240,8 +240,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 ## targe of LVC：108
@@ -260,8 +260,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 
@@ -281,8 +281,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 ## targe of LVC：143
@@ -301,8 +301,8 @@ t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
 targets.append(t)
-YTrains.append(YTrain)
-YTests.append(YTest)
+YTrains.append(YTrain.clone())
+YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 ## outputs
@@ -313,8 +313,9 @@ LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_outpu
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 ## train BN models and non-BN models based on different targets
-for MC in range(9):
-    print('sample' + str(MC) + 'complete!')
+total_MC = 9
+for MC in range(total_MC):
+    print('MC sample ' + str(MC) + f'/{total_MC} starts!')
     LVC = torch.zeros(mod_num)
     LVC_BN = torch.zeros(mod_num)
     GE = torch.zeros(mod_num)
@@ -385,6 +386,7 @@ for MC in range(9):
         GE_UE[i] = a / 2 ** (n-1)
         LVC_UE[i] = get_LVComplexity(predicts)
 
+
     LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
     LVC_output_UEs.append(LVC_UE), GE_output_UEs.append(GE_UE)
 
@@ -402,3 +404,5 @@ for h in range(9):
     ax[h].legend(loc="upper right")
     ax[h].set_xlabel('Target Complexity =' + '' + str(TLVS[h]))
     ax[h].set_ylabel('Error Rates')
+
+fig.show()
