@@ -25,7 +25,7 @@ scale = 1.0 ## var of initialization
 
 
 ## choose target, need to choose targets of different LVC
-epochs, dims, datas, targets, XTrains, YTrains, TLVS= [], [], [], [], [], [], []
+epochs, dims, datas, targets, XTrains, YTrains, TLVC= [], [], [], [], [], [], []
 epochs.append(int(3))
 epochs.append(int(10))
 for i in range(2,9):
@@ -62,7 +62,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(7))
+TLVC.append(int(7))
 
 ## target of LVC: 31
 dim = 8
@@ -93,7 +93,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(31))
+TLVC.append(int(31))
 
 
 ## target of LVC: 48
@@ -124,7 +124,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(48))
+TLVC.append(int(48))
 
 
 ## target of LVC: 65
@@ -153,7 +153,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(65))
+TLVC.append(int(65))
 
 ## target of LVC: 86
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -181,7 +181,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(86))
+TLVC.append(int(86))
 
 ## target of LVC: 108
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -209,7 +209,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(108))
+TLVC.append(int(108))
 
 ## targe of LVC：124
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -237,7 +237,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(124))
+TLVC.append(int(124))
 
 ## targe of LVC：142
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -265,7 +265,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(142))
+TLVC.append(int(142))
 
 ## targe of LVC：176
 data = np.zeros([2 ** dim, dim], dtype=np.float32)
@@ -295,7 +295,7 @@ datas.append(data)
 dims.append(dim)
 XTrains.append(XTrain)
 YTrains.append(YTrain)
-TLVS.append(int(176))
+TLVC.append(int(176))
 
 ## outputs
 LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_output_UEs = [], [], [], [], [], []
