@@ -111,7 +111,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-mod_num = 100  ## numbers of models used for each example
+mod_num = 500  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
 scale = 10  # STD of initialization
 
@@ -315,7 +315,7 @@ loss = torch.nn.CrossEntropyLoss(size_average=True)
 ## train BN models and non-BN models based on different targets
 total_MC = 9
 for MC in range(total_MC):
-    print('MC sample ' + str(MC) + f'/{total_MC} starts!')
+    print(f'{datetime.datetime.now()} MC sample ' + str(MC) + f'/{total_MC} starts!')
     LVC = np.zeros(mod_num)
     LVC_BN = np.zeros(mod_num)
     GE = np.zeros(mod_num)
@@ -426,10 +426,10 @@ for h in range(9):
     ax[h, 1].hist(LVC_output_BNs[h], 10, facecolor='red', alpha=0.75, label='NN + BN')
     ax[h, 0].legend(loc="upper right")
     ax[h, 1].legend(loc="upper right")
-    ax[h, 0].set_xlabel('Error rate histplot' + '' + 'tcomplexity =' + '' + str(TLVS[h]))
-    ax[h, 1].set_xlabel('Complexity histplot' + '' + 'tcomplexity =' + '' + str(TLVS[h]))
-    ax[h, 0].set_ylabel('Error Rates')
-    ax[h, 1].set_ylabel('Complexity')
+    ax[h, 0].set_xlabel(f'Generalization/Test Error; Target Complexity: {TLVS[h]}')
+    ax[h, 1].set_xlabel(f'Output Complexity; Target Complexity: {TLVS[h]}')
+    ax[h, 0].set_ylabel('Frequency')
+    ax[h, 1].set_ylabel('Frequency')
 fig.show()
 
 
