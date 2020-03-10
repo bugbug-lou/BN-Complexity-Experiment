@@ -409,9 +409,9 @@ def process(process_key, return_dict, MC_num):
 
 
 
-if __name__ == '__main1__':
+if __name__ == '__main__':
     num_jobs = 10   # number of differnet targets we have chosen
-    MC_num = int(100)
+    MC_num = int(5)
     total_times = MC_num * num_jobs
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
