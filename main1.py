@@ -114,7 +114,7 @@ m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 50 ## training time
+epochs = 5 ## training time
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
@@ -427,16 +427,17 @@ if __name__ == '__main__':
 
     for pair in return_dict.values():
         if error is None and error_BN is None and cplx is None and cplx_BN is None:
-            error, error_BN, cplx, cplx_BN = pair[0], pair[1], pair[2], pair[3]
+            error, error_BN, cplx, cplx_BN = np.asarray(pair[0]), np.asarray(pair[1]), \
+                                             np.asarray(pair[2]), np.asarray(pair[3])
         else:
-            error = torch.cat((error, pair[0]), axis=None)
-            error_BN = torch.cat((error_BN, pair[1]), axis=None)
-            cplx = torch.cat((cplx, pair[2]), axis=None)
-            cplx_BN = torch.cat((cplx_BN, pair[3]), axis=None)
+            error = np.concatenate((error, np.asarray(pair[0])), axis=None)
+            error_BN = np.concatenate((error_BN, np.asarray(pair[1])), axis=None)
+            cplx = np.concatenate((cplx, np.asarray(pair[2])), axis=None)
+            cplx_BN = np.concatenate((cplx_BN, np.asarray(pair[3])), axis=None)
 
 
     # plot
-    X = torch.arange(1, epochs + 1, 1)
+    X = np.arange(1, epochs + 1, 1)
     fig, ax = plt.subplots(nrows=10, ncols=2, figsize=(15, 15),constrained_layout=True)
     for h in range(10):
         ax[h,0].plot(X, error[h], label='NN')
