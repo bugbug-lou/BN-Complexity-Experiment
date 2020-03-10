@@ -418,7 +418,7 @@ fig.show()
 
 
 # plotting GE and complexity
-fig, ax = plt.subplots(nrows=9, ncols=2, figsize=(15, 15),constrained_layout=True)
+fig, ax = plt.subplots(nrows=9, ncols=2, figsize=(15, 15), constrained_layout=True)
 for h in range(9):
     ax[h,0].hist(GE_outputs[h], 10, facecolor='blue', alpha=0.75, label='NN')
     ax[h,0].hist(GE_output_BNs[h], 10, facecolor='red', alpha=0.75, label='NN + BN')
@@ -434,3 +434,4 @@ fig.show()
 
 
 
+# TODO: Bin size of the plot, plot some statistics

@@ -86,6 +86,11 @@ for t in range(testtime):
     target = torch.from_numpy(target)
     target = target.long()
 
+    # TODO: Take different target functions and see whether there is a trend
+    # Generate some systematic data
+    # Learning curve hill __> why?
+    # plot P(f) dropout/BN vs P(f) ABI as well as P(f) d/BN vs P(f) SGD
+
     ## generate training set and inference set
     XTrain = torch.zeros(m_2, n)
     XTest = torch.zeros(m_2, n)
@@ -139,7 +144,6 @@ for t in range(testtime):
     def predict(model, inputs):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
-
         logits = model.forward(inputs)
         return logits
 
