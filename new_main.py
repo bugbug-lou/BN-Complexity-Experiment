@@ -411,7 +411,7 @@ def process(epochs, YTrain, target, MC_num = MC_num):
 
 
 # define epochs for all nine targets
-train_times = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+train_times = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
 
 error, error_BN, cplx, cplx_BN, Xs = [], [], [], [], []
 for i in range(10):
@@ -433,7 +433,7 @@ for h in range(10):
     ax[h, 1].plot(Xs[h], cplx_BN[h], label='NN + BN')
     ax[h, 0].legend(loc="upper right")
     ax[h, 1].legend(loc="upper right")
-    ax[h, 0].set_xlabel(f'Generalization/Test Error; Target Complexity: {TLVS[h]}')
+    ax[h, 0].set_xlabel(f'Train Error; Target Complexity: {TLVS[h]}')
     ax[h, 1].set_xlabel(f'Output Complexity; Target Complexity: {TLVS[h]}')
     ax[h, 0].set_ylabel('error')
     ax[h, 1].set_ylabel('complexity')
