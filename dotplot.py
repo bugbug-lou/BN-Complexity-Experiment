@@ -161,7 +161,7 @@ outputs = {}
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 for i in range(MC_num):
-    if i % 1000 == 0:
+    if i % 100 == 0:
         print(str(i) + 'aha!')
     model1 = torch.nn.Sequential()
     model1.add_module('FC1', torch.nn.Linear(n, neu))
