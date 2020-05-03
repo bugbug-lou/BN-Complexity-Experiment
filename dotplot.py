@@ -221,11 +221,11 @@ for i in range(13):
 
 
 plt.plot(Z, Z, color='blue')
-plt.xlim(1 / MC_num, 100)
-plt.ylim(1 / MC_num, 100)
+plt.xlim(1 / MC_num, 1)
+plt.ylim(1 / MC_num, 1)
 plt.xlabel('P(f) SGD C_E BN')
 plt.ylabel('P(f) SGD C_E NN')
-plt.legend(loc="upper right")
+plt.legend(bbox_to_anchor=(1.04,0.5), loc="center left")
 plt.xscale('log')
 plt.yscale('log')
 plt.show()
