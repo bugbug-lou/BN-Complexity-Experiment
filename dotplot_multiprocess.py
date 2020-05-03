@@ -1,3 +1,4 @@
+# import
 import numpy as np
 import datetime
 import random
@@ -118,7 +119,6 @@ m = 2 ** n  # number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
-MC_num = 10 ** 2  # number of random initialization of models
 neu = 40  # neurons per layer
 mean = 0.0  # mean of initialization
 scale = 10  # STD of initialization
@@ -138,8 +138,8 @@ XTest = torch.zeros([m_2, n])
 YTrain = torch.zeros(m_2)
 YTest = torch.zeros(m_2)
 for i in range(m_2):
-    XTrain[i, :] = data[i, :]
-    XTest[i, :] = data[i + m_2, :]
+    XTrain[i, :] = data[2 * i, :]
+    XTest[i, :] = data[2 * i + 1, :]
 
 target = torch.zeros(m)
 for i in range(m_3):
@@ -148,21 +148,20 @@ for i in range(m_3):
     target[i + m_3] = 0
     target[i + m_3 + m_2] = 0
 for i in range(m_2):
-    YTrain[i] = target[i]
-    YTest[i] = target[i + m_2]
+    YTrain[i] = target[2 * i]
+    YTest[i] = target[2 * i + 1]
 YTrain = YTrain.long()
 YTest = YTest.long()
-
-# initialize 10^6 models and train to 100% accuracy
-outputs = {}
 
 # we use MSE Loss:
 # loss = torch.nn.MSELoss(size_average=True)
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
-for i in range(MC_num):
-    if i % 100 == 0:
-        print(str(i) + 'aha!')
+# initialize the function: (frequncy, frequency, complexity) dictionary
+outputs = {}
+
+# the following process should be run MC_num times:
+def process(outputs):
     model1 = torch.nn.Sequential()
     model1.add_module('FC1', torch.nn.Linear(n, neu))
     model1.add_module('FC2', torch.nn.Linear(neu, 2))
@@ -210,6 +209,19 @@ for i in range(MC_num):
     del model1
     del model2
 
+
+if __name__ == '__main__':
+    MC_num = int(10 ** 4)  # number of random initialization of models
+    total_times =
+    manager = multiprocessing.Manager()
+    jobs = []
+    p = multiprocessing.Process(target=process, args=(return_dict, MC_num))
+    jobs.append(p)
+    p.start()
+    for proc in jobs:
+        proc.join()
+
+
 # plot
 color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red', 'red', 'red']
 Z = torch.arange(0, 1, 0.001)
@@ -218,7 +230,6 @@ for i in range(13):
     l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
     p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
     plt.scatter(p, l, color=color[i], alpha=1.0, label='complexity range:' + str(10 * i) + '-' + str(10 * (i + 1)))
-
 
 plt.plot(Z, Z, color='blue')
 plt.xlim(1 / MC_num, 1)
@@ -229,4 +240,3 @@ plt.legend(bbox_to_anchor=(1.04,0.5), loc="center left")
 plt.xscale('log')
 plt.yscale('log')
 plt.show()
-
