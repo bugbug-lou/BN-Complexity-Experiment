@@ -221,8 +221,8 @@ for i in range(13):
 
 
 plt.plot(Z, Z, color='blue')
-plt.xlim(1 / MC_num, 1)
-plt.ylim(1 / MC_num, 1)
+plt.xlim(1 / MC_num, 100)
+plt.ylim(1 / MC_num, 100)
 plt.xlabel('P(f) SGD C_E BN')
 plt.ylabel('P(f) SGD C_E NN')
 plt.legend(loc="upper right")
