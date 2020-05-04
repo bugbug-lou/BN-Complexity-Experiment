@@ -124,12 +124,10 @@ data = torch.from_numpy(data)
 ## generate training set and inference set
 XTrain = torch.zeros(m_2, n)
 XTest = torch.zeros(m_2, n)
-for i in range(m_3):
+for i in range(m_2):
     XTrain[i, :] = data[i, :]
-    XTrain[i + m_3, :] = data[i + m_2, :]
-    XTest[i, :] = data[i + m_3, :]
-    XTest[i, :] = data[i + 3 * m_3, :]
-
+    XTest[i, :] = data[i + m_2, :]
+    
 ## choose target, need to choose targets of different LVC
 targets, YTrains, YTests, TLVS= [], [], [], []
 
