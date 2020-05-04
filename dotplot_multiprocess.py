@@ -10,7 +10,12 @@ from torch import optim
 # from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
+from tqdm import tqdm
 
+
+MC_num = int(10 ** 6)  # number of random initialization of models
+tasks = range(MC_num)
+pbar = tqdm(total=len(tasks))
 
 # functions
 def array_to_string(x):
@@ -199,16 +204,17 @@ def process(process_key):
     c = get_LVComplexity(k1)
     d = get_LVComplexity(k2)
 
+    pbar.update(1)
+
     return (a,b,c,d)
 
 
 if __name__ == '__main__':
-    MC_num = int(10 ** 6)  # number of random initialization of models
-    
     pool = multiprocessing.Pool()
-    result = pool.map(process, range(MC_num))
+    result = pool.map(process, tasks)
     pool.close()
     pool.join()
+    pbar.close()
 
     # plot
     outputs = {}
@@ -242,5 +248,5 @@ if __name__ == '__main__':
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('bn_nn.png')
+    # plt.savefig('bn_nn.png')
     plt.show()
