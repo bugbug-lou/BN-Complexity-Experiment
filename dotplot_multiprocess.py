@@ -204,17 +204,21 @@ def process(process_key):
     c = get_LVComplexity(k1)
     d = get_LVComplexity(k2)
 
-    pbar.update(1)
+    # pbar.update()
 
     return (a,b,c,d)
 
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool()
-    result = pool.map(process, tasks)
+    pool = multiprocessing.Pool(16)
+
+    result = []
+    with tqdm(total=MC_num, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
+        for i, x in enumerate(pool.imap(process, tasks)):
+            t.update()
+            result.append(x)
     pool.close()
     pool.join()
-    pbar.close()
 
     # plot
     outputs = {}
