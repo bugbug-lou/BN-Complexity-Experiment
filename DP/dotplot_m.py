@@ -177,7 +177,7 @@ def process(process_key):
     model2 = torch.nn.Sequential()
     model2.add_module('FC1', torch.nn.Linear(n, neu))
     model2.add_module('Relu', torch.nn.ReLU(inplace=True))
-    model2.add_module('bn1', torch.nn.BatchNorm1d(neu, momentum=0.1))
+    model2.add_module('dp', torch.nn.Dropout(0.5))
     model2.add_module('FC2', torch.nn.Linear(neu, 2))
     with torch.no_grad():
         torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
@@ -212,7 +212,7 @@ def process(process_key):
 
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool(15)
+    pool = multiprocessing.Pool()
 
     result = []
     with tqdm(total=MC_num, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
@@ -249,10 +249,10 @@ if __name__ == '__main__':
     plt.plot(Z, Z, color='blue')
     plt.xlim(1 / MC_num, 1)
     plt.ylim(1 / MC_num, 1)
-    plt.xlabel('P(f) SGD C_E BN')
+    plt.xlabel('P(f) SGD C_E DROPOUT')
     plt.ylabel('P(f) SGD C_E NN')
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('bn_nn1.png')
+    plt.savefig('dp_nn1.png')
     plt.show()
