@@ -184,8 +184,8 @@ def process(process_key):
         torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
 
     # define optimizer
-    optimizer1 = optim.SGD(model1.parameters(), lr=0.01)
-    optimizer2 = optim.SGD(model2.parameters(), lr=0.01)
+    optimizer1 = optim.SGD(model1.parameters(), lr=0.1)
+    optimizer2 = optim.SGD(model2.parameters(), lr=0.1)
 
     # train until convergence:
     pr1 = pr2 = 1
@@ -254,5 +254,5 @@ if __name__ == '__main__':
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('dp_nn1.png')
+    plt.savefig('dp_nn_28.png')
     plt.show()

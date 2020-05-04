@@ -124,7 +124,7 @@ m = 2 ** n  # number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
-neu = 40  # neurons per layer
+neu = 128  # neurons per layer
 mean = 0.0  # mean of initialization
 scale = 10  # STD of initialization
 
@@ -184,8 +184,8 @@ def process(process_key):
         torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
 
     # define optimizer
-    optimizer1 = optim.SGD(model1.parameters(), lr=0.01)
-    optimizer2 = optim.SGD(model2.parameters(), lr=0.01)
+    optimizer1 = optim.SGD(model1.parameters(), lr=0.1)
+    optimizer2 = optim.SGD(model2.parameters(), lr=0.1)
 
     # train until convergence:
     pr1 = pr2 = 1
@@ -212,7 +212,7 @@ def process(process_key):
 
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool(15)
+    pool = multiprocessing.Pool(16)
 
     result = []
     with tqdm(total=MC_num, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
