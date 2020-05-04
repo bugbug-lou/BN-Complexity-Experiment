@@ -39,7 +39,7 @@ def get_LVComplexity(x):
     ones = torch.ones(len(x))
     zeros = torch.zeros(len(x))
     if torch.all(torch.eq(x, ones)) or torch.all(torch.eq(x, ones)):
-        return 7
+        return np.log2(len(x))
     else:
         with torch.no_grad():
             a = N_w(x)
@@ -109,11 +109,11 @@ m = 2 ** n  ## number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
-layer_num = 3  ## number of layers of the neural network, user-defined
+layer_num = 3  ## number of layers of the neural network
 neu = 40  ## neurons per layer
-mod_num = 100  ## numbers of models used for each example
+mod_num = 500  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
-scale = 10  # STD of initialization
+scale = 1.0  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
@@ -127,8 +127,8 @@ data = torch.from_numpy(data)
 XTrain = torch.zeros([2 ** (n-1), n])
 XTest = torch.zeros([2 ** (n-1), n])
 for i in range(2 ** (n-1)):
-    XTrain[i,:] = data[2*i,:]
-    XTest[i, :] = data[2 * i + 1, :]
+    XTrain[i,:] = data[i,:]
+    XTest[i, :] = data[i + m_2, :]
 
 ## choose target, need to choose targets of different LVC
 targets, YTrains, YTests, TLVS= [], [], [], []
@@ -139,8 +139,8 @@ t = torch.ones(2 ** n)
 YTrain = torch.zeros(2 ** (n-1))
 YTest = torch.zeros(2 ** (n-1))
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -156,8 +156,8 @@ for i in range(m_3):
     t[i + m_3] = 0
     t[i + m_3 + m_2] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -173,8 +173,8 @@ for i in range(m):
     else:
         t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -184,17 +184,14 @@ YTests.append(YTest.clone())
 TLVS.append(int(49))
 
 ## targe of LVC：63
-t = torch.tensor([1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
-        0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0.,
-        1., 1.])
+for i in range(m):
+    if i%41 == 0 or i%41 == 1 or i%41 == 4 or i%41 == 9 or i%41 == 16 or i%41 == 25 or i%41 == 36 or i%41 == 6:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -205,17 +202,14 @@ TLVS.append(int(get_LVComplexity(t)))
 
 
 ## targe of LVC：70
-t = torch.tensor([0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
-        0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 1.,
-        0., 0.])
+for i in range(m):
+    if i%53 == 0 or i%53 == 1 or i%53 == 4 or i%53 == 9 or i%53 == 16 or i%53 == 25 or i%53 == 36 or i%53 == 49 or i%53 == 11 or i%53 == 28:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -224,18 +218,15 @@ YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
-## targe of LVC：83.5
-t = torch.tensor([0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 1., 1., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0.,
-        0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
-        1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0.])
+## targe of LVC：84
+for i in range(m):
+    if i%89 == 0 or i%89 == 1 or i%89 == 4 or i%89 == 9 or i%89 == 16 or i%89 == 25 or i%89 == 36 or i%89 == 49 or i%89 == 64 or i%89 == 81 or i%89 == 11or i%89 == 32:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -254,8 +245,8 @@ t = torch.tensor([0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.
         0., 0., 0., 0., 1., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1., 0.,
         1., 0.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -275,8 +266,8 @@ t = torch.tensor([1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 0., 1., 0., 0.
         0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 1., 1., 0.,
         1., 1.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -295,8 +286,8 @@ t = torch.tensor([0., 0., 1., 1., 0., 1., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0.
         0., 1., 1., 0., 1., 1., 1., 1., 1., 0., 0., 0., 0., 1., 0., 1., 1., 1.,
         0., 1.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = t[2 * i]
-    YTest[i] = t[2 * i + 1]
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
 t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
@@ -306,7 +297,7 @@ YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 
 ## outputs
-LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs, LVC_output_UEs, GE_output_UEs = [], [], [], [], [], []
+LVC_outputs, LVC_output_BNs, GE_outputs, GE_output_BNs = [], [], [], []
 
 
 ## define loss function
@@ -320,8 +311,6 @@ for MC in range(total_MC):
     LVC_BN = np.zeros(mod_num)
     GE = np.zeros(mod_num)
     GE_BN = np.zeros(mod_num)
-    LVC_UE = np.zeros(mod_num)
-    GE_UE = np.zeros(mod_num)
 
     for i in range(mod_num):
         model1 = torch.nn.Sequential()  # model without batch normalization
@@ -370,34 +359,21 @@ for MC in range(total_MC):
             pr2 = get_error(model2, XTrain, YTrains[MC], 2 ** (n-1))
 
         # prediction
-        Aggregate1 = predict(model1, XTest)
-        Aggregate2 = predict(model2, XTest)
+        Aggregate1 = predict(model1, data)
+        Aggregate2 = predict(model2, data)
         Output_1 = Output(Aggregate1)
         Output_2 = Output(Aggregate2)
-        GE[i] = get_error(model1, XTest, YTests[MC], 2 ** (n-1))
-        GE_BN[i] = get_error(model2, XTest, YTests[MC], 2 ** (n-1))
+        GE[i] = get_error(model1, XTest, YTests[MC], 2 ** (n-1))/2
+        GE_BN[i] = get_error(model2, XTest, YTests[MC], 2 ** (n-1))/2
         LVC[i] = get_LVComplexity(Output_1)
         LVC_BN[i] = get_LVComplexity(Output_2)
 
         del model1
         del model2
 
-        # randomly choose a 0-1 string as unbiased estimator
-        zero_ones = np.array([0,1]) # things to choose from
-        dis = np.array([0.5, 0.5])  # probability input for choose function
-        Ori = np.zeros(2 ** (n-1))
-        for j in range(2 ** (n-1)):
-            Ori[j] = np.random.choice(zero_ones, p=dis)
-        predicts = torch.from_numpy(Ori)
-        k = predicts - YTests[MC]
-        a = torch.sum(torch.abs(k))
-        GE_UE[i] = a / 2 ** (n-1)
-        LVC_UE[i] = get_LVComplexity(predicts)
 
 
     LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
-    LVC_output_UEs.append(LVC_UE), GE_output_UEs.append(GE_UE)
-
 
 
 
@@ -409,7 +385,6 @@ for h in range(9):
     ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='NN', c='green', alpha=0.5)
     ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='NN+BN', c='red', alpha=0.5)
     # ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
-    print(h, GE_outputs[h])
     ax[h].legend(loc="upper right")
     ax[h].set_xlabel(f'Target Complexity: {TLVS[h]}')
     ax[h].set_ylabel('Generalization/Test Error')
@@ -421,8 +396,8 @@ fig, ax = plt.subplots(nrows=9, ncols=2, figsize=(15, 15),constrained_layout=Tru
 for h in range(9):
     ax[h,0].hist(GE_outputs[h], bins = 20, range = (0.0,1.0), facecolor='blue', alpha=0.75, label='NN')
     ax[h,0].hist(GE_output_BNs[h], bins = 20, range = (0.0,1.0), facecolor='red', alpha=0.75, label='NN + BN')
-    ax[h, 1].hist(LVC_outputs[h],bins = 20, range = (0, 80), facecolor='blue', alpha=0.75, label='NN')
-    ax[h, 1].hist(LVC_output_BNs[h], bins = 20, range = (0, 80), facecolor='red', alpha=0.75, label='NN + BN')
+    ax[h, 1].hist(LVC_outputs[h],bins = 20, range = (0, 140), facecolor='blue', alpha=0.75, label='NN')
+    ax[h, 1].hist(LVC_output_BNs[h], bins = 20, range = (0, 140), facecolor='red', alpha=0.75, label='NN + BN')
     ax[h, 0].legend(loc="upper right")
     ax[h, 1].legend(loc="upper right")
     ax[h, 0].set_xlabel('Error rate histplot' + '' + 'tcomplexity =' + '' + str(TLVS[h]))
@@ -430,5 +405,3 @@ for h in range(9):
     ax[h, 0].set_ylabel('Error Rates')
     ax[h, 1].set_ylabel('Complexity')
 fig.show()
-
-

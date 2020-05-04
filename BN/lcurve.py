@@ -10,7 +10,6 @@ from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
 
-
 def array_to_string(x):
     y = ''
     for l in x:
@@ -35,19 +34,19 @@ def get_max_freq(x):
         if T[f] == a:
             return f
 
+
 def get_LVComplexity(x):
     ones = torch.ones(len(x))
     zeros = torch.zeros(len(x))
-    if torch.all(torch.eq(x, ones)) or torch.all(torch.eq(x, zeros)):
-        return 7
+    if torch.all(torch.eq(x, ones)) or torch.all(torch.eq(x, ones)):
+        return np.log2(len(x))
     else:
         with torch.no_grad():
             a = N_w(x)
             y = np.asarray(x)
             y = y[::-1]
             b = N_w(y)
-        return np.log2(len(x)) * (a + b) / 2
-
+        return np.log2(len(x)) * (a + b)/2
 
 def N_w(S):
     # get number of words in dictionary
@@ -74,8 +73,6 @@ def N_w(S):
         C = C + 1
     return C
 
-
-
 def train(model, loss, optimizer, inputs, labels):
         model.train()
         inputs = Variable(inputs, requires_grad=False)
@@ -90,7 +87,7 @@ def train(model, loss, optimizer, inputs, labels):
         optimizer.step()
         return output.item()
 
-def get_error(model, inputs, labels):
+def get_error(model, inputs, labels, d):
         model.eval()
         inputs = Variable(inputs, requires_grad=False)
         labels = Variable(labels, requires_grad=False)
@@ -98,7 +95,7 @@ def get_error(model, inputs, labels):
         predicts = Output(logits)
         k = predicts - labels
         a = torch.sum(torch.abs(k))
-        return a/m
+        return a/d
 
 def predict(model, inputs):
         model.eval()
@@ -106,242 +103,210 @@ def predict(model, inputs):
         logits = model.forward(inputs)
         return logits
 
-# parameters
 n = 7  ## dimension of input data, user-defined
 m = 2 ** n  ## number of data points
-k = 2 ** m
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 5 ## training time
+epochs = 50 ## training time
 mean = 0.0 ## mean of initialization
 scale = 1.0 ## var of initialization
 
-
-# initialization of datasets and targets
-
-# initialize data sets as binary strings
-data = np.zeros([m, n])
-for i in range(m):
+## data: 7 * 128
+data = np.zeros([2 ** n, n], dtype=np.float32)
+for i in range(2 ** n):
     bin = np.binary_repr(i, n)
     a = np.array(list(bin), dtype=int)
     data[i, :] = a
-
-
-## choose target, need to choose targets of different LVC
-targets, YTrains, YTests, TLVS = [], [], [], []
-
-## Target Function: we choose one that is of intermediate Lempel_Ziv complexity
-target = torch.ones(m)
-for i in range(m_3):
-    target[i] = 1
-    target[i + m_2] = 1
-    target[i + m_3] = 0
-    target[i + m_3 + m_2] = 0
 data = torch.from_numpy(data)
-data = data.float()
-target = target.long()
-targets.append(target.clone())
 
 ## generate training set and inference set
-XTrain = torch.zeros([2 ** (n - 1), n])
-XTest = torch.zeros([2 ** (n - 1), n])
-for i in range(2 ** (n - 1)):
-    XTrain[i, :] = data[2 * i, :]
-    XTest[i, :] = data[2 * i + 1, :]
-YTrain = torch.zeros(m_2)
-YTest = torch.zeros(m_2)
-for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-YTrain = YTrain.long()
-YTest = YTest.long()
-YTrains.append(YTrain.clone())
-YTests.append(YTest.clone())
-TLVS.append(int(21))
+XTrain = torch.zeros(m_2, n)
+XTest = torch.zeros(m_2, n)
+for i in range(m_3):
+    XTrain[i, :] = data[i, :]
+    XTrain[i + m_3, :] = data[i + m_2, :]
+    XTest[i, :] = data[i + m_3, :]
+    XTest[i, :] = data[i + 3 * m_3, :]
+
+## choose target, need to choose targets of different LVC
+targets, YTrains, YTests, TLVS= [], [], [], []
+
 
 ## target of LVC: 7
-target = torch.ones(m)
-YTrain = torch.zeros(2 ** (n - 1))
-YTest = torch.zeros(2 ** (n - 1))
+t = torch.ones(2 ** n)
+YTrain = torch.zeros(2 ** (n-1))
+YTest = torch.zeros(2 ** (n-1))
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
 TLVS.append(int(7))
 
 ## target of LVC: 28
 for i in range(m_3):
-    target[i] = 1
-    target[i + m_2] = 1
-    target[i + m_3] = 0
-    target[i + m_3 + m_2] = 0
+    t[i] = 1
+    t[i + m_2] = 1
+    t[i + m_3] = 0
+    t[i + m_3 + m_2] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
 TLVS.append(int(28))
 
 ## targe of LVC：49
 for i in range(m):
-    if i % 17 == 0 or i % 17 == 1 or i % 17 == 4 or i % 17 == 9 or i % 17 == 16 or i % 17 == 8 or i % 17 == 2 or i % 17 == 15:
-        target[i] = 1
+    if i%17 == 0 or i%17 == 1 or i%17 == 4 or i%17 == 9 or i%17 == 16 or i%17 == 8 or i%17 == 2 or i%17 == 15:
+        t[i] = 1
     else:
-        target[i] = 0
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
 TLVS.append(int(49))
 
 ## targe of LVC：63
-target = torch.tensor([1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
-                  0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0.,
-                  1., 1.])
+for i in range(m):
+    if i%41 == 0 or i%41 == 1 or i%41 == 4 or i%41 == 9 or i%41 == 16 or i%41 == 25 or i%41 == 36 or i%41 == 6:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
+
 
 ## targe of LVC：70
-target = torch.tensor([0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 1.,
-                  0., 0.])
+for i in range(m):
+    if i%53 == 0 or i%53 == 1 or i%53 == 4 or i%53 == 9 or i%53 == 16 or i%53 == 25 or i%53 == 36 or i%53 == 49 or i%53 == 11 or i%53 == 28:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
 
-## targe of LVC：83.5
-target = torch.tensor([0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 1., 1., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0.,
-                  0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.,
-                  0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0.,
-                  1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-                  0., 0.])
+## targe of LVC：84
+for i in range(m):
+    if i%89 == 0 or i%89 == 1 or i%89 == 4 or i%89 == 9 or i%89 == 16 or i%89 == 25 or i%89 == 36 or i%89 == 49 or i%89 == 64 or i%89 == 81 or i%89 == 11or i%89 == 32:
+        t[i] = 1
+    else:
+        t[i] = 0
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
 
 ## targe of LVC：108
-target = torch.tensor([0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0.,
-                  0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,
-                  1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 1., 0., 0., 0.,
-                  0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
-                  1., 1., 0., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.,
-                  0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1.,
-                  0., 0., 0., 0., 1., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1., 0.,
-                  1., 0.])
+t = torch.tensor([0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0.,
+        0., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,
+        1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 1., 0., 0., 0.,
+        0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
+        1., 1., 0., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.,
+        0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1.,
+        0., 0., 0., 0., 1., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1., 0.,
+        1., 0.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
+
 
 ## targe of LVC：126
-target = torch.tensor([1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 0., 1., 0., 0., 1., 0.,
-                  1., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
-                  0., 1., 0., 0., 1., 1., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 1., 1.,
-                  1., 1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1.,
-                  1., 0., 0., 1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 0., 0., 0., 1., 1.,
-                  0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 1., 0., 1., 1., 1., 0., 0., 0.,
-                  0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 1., 1., 0.,
-                  1., 1.])
+t = torch.tensor([1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 0., 1., 0., 0., 1., 0.,
+        1., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
+        0., 1., 0., 0., 1., 1., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 1., 1.,
+        1., 1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1.,
+        1., 0., 0., 1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 0., 0., 0., 1., 1.,
+        0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 1., 0., 1., 1., 1., 0., 0., 0.,
+        0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 1., 1., 0.,
+        1., 1.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
 
 ## targe of LVC：143
-target = torch.tensor([0., 0., 1., 1., 0., 1., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 1., 0.,
-                  0., 1., 0., 0., 1., 1., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 0., 0.,
-                  0., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
-                  0., 0., 0., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 1., 1., 1., 0., 1.,
-                  0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1.,
-                  1., 0., 1., 0., 1., 1., 1., 0., 1., 0., 0., 1., 1., 1., 0., 1., 1., 0.,
-                  0., 1., 1., 0., 1., 1., 1., 1., 1., 0., 0., 0., 0., 1., 0., 1., 1., 1.,
-                  0., 1.])
+t = torch.tensor([0., 0., 1., 1., 0., 1., 0., 1., 1., 0., 0., 1., 1., 0., 1., 0., 1., 0.,
+        0., 1., 0., 0., 1., 1., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 0., 0.,
+        0., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 1., 0., 0., 1., 1., 1., 1., 0., 1., 1., 1., 1., 1., 0., 1.,
+        0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1.,
+        1., 0., 1., 0., 1., 1., 1., 0., 1., 0., 0., 1., 1., 1., 0., 1., 1., 0.,
+        0., 1., 1., 0., 1., 1., 1., 1., 1., 0., 0., 0., 0., 1., 0., 1., 1., 1.,
+        0., 1.])
 for i in range(2 ** (n - 1)):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
-target = target.long()
+    YTrain[i] = t[i]
+    YTest[i] = t[i + m_2]
+t = t.long()
 YTrain = YTrain.long()
 YTest = YTest.long()
-targets.append(target.clone())
+targets.append(t)
 YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
-TLVS.append(int(get_LVComplexity(target)))
+TLVS.append(int(get_LVComplexity(t)))
 
 
 ## define loss function
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 def process(process_key, return_dict, MC_num):
-    error_nonBN = torch.zeros(epochs)
-    error_withBN = torch.zeros(epochs)
-    non_BN_mean_complexity = torch.zeros(epochs)
-    BN_mean_complexity = torch.zeros(epochs)
     model1s, optimizer1s = [], []
     model2s, optimizer2s = [], []
-
+    error_nonBN = torch.zeros(epochs)
+    error_BN = torch.zeros(epochs)
+    non_BN_mean_complexity = torch.zeros(epochs)
+    BN_mean_complexity = torch.zeros(epochs)
     for MC in range(MC_num):
         model1 = torch.nn.Sequential()  # model without batch normalization
         model2 = torch.nn.Sequential()  # model with batch normalization
@@ -378,6 +343,7 @@ def process(process_key, return_dict, MC_num):
         optimizer1s.append(optimizer1)
         optimizer2s.append(optimizer2)
 
+
     for epoch in range(epochs):
         if epoch % 5 == 0:
             print(f'{datetime.datetime.now()} Epoch {epoch} complete!')
@@ -393,15 +359,15 @@ def process(process_key, return_dict, MC_num):
             Aggregate2 = predict(model2s[MC], data)
             Output_1 = Output(Aggregate1)
             Output_2 = Output(Aggregate2)
-            L_nonBN[MC] = get_error(model1s[MC], data, target)
-            L_BN[MC] = get_error(model2s[MC], data, target)
+            L_nonBN[MC] = get_error(model1s[MC], XTrain, YTrains[process_key], m_2)
+            L_BN[MC] = get_error(model2s[MC], XTrain, YTrains[process_key], m_2)
             a = get_LVComplexity(Output_1)
             b = get_LVComplexity(Output_2)
             Complexity_agg[MC] = a
             Complexity_agg_BN[MC] = b
 
         error_nonBN[epoch] = torch.mean(L_nonBN)
-        error_withBN[epoch] = torch.mean(L_BN)
+        error_BN[epoch] = torch.mean(L_BN)
         non_BN_mean_complexity[epoch] = torch.mean(Complexity_agg)
         BN_mean_complexity[epoch] = torch.mean(Complexity_agg_BN)
 
@@ -411,7 +377,7 @@ def process(process_key, return_dict, MC_num):
 
 if __name__ == '__main__':
     num_jobs = 10   # number of differnet targets we have chosen
-    MC_num = int(5)
+    MC_num = int(100)
     total_times = MC_num * num_jobs
     manager = multiprocessing.Manager()
     return_dict = manager.dict()

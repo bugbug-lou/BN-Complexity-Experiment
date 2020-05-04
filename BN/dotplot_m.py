@@ -1,3 +1,4 @@
+# import
 import numpy as np
 import datetime
 import random
@@ -6,10 +7,15 @@ import multiprocessing
 import torch
 from torch.autograd import Variable
 from torch import optim
-from lempel_ziv_complexity import lempel_ziv_complexity
+# from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
+from tqdm import tqdm
 
+
+MC_num = int(10 ** 6)  # number of random initialization of models
+tasks = range(MC_num)
+pbar = tqdm(total=len(tasks))
 
 # functions
 def array_to_string(x):
@@ -118,7 +124,6 @@ m = 2 ** n  # number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
-MC_num = 10 ** 5  # number of random initialization of models
 neu = 40  # neurons per layer
 mean = 0.0  # mean of initialization
 scale = 10  # STD of initialization
@@ -138,8 +143,8 @@ XTest = torch.zeros([m_2, n])
 YTrain = torch.zeros(m_2)
 YTest = torch.zeros(m_2)
 for i in range(m_2):
-    XTrain[i, :] = data[i, :]
-    XTest[i, :] = data[i + m_2, :]
+    XTrain[i, :] = data[2 * i, :]
+    XTest[i, :] = data[2 * i + 1, :]
 
 target = torch.zeros(m)
 for i in range(m_3):
@@ -148,21 +153,19 @@ for i in range(m_3):
     target[i + m_3] = 0
     target[i + m_3 + m_2] = 0
 for i in range(m_2):
-    YTrain[i] = target[i]
-    YTest[i] = target[i + m_2]
+    YTrain[i] = target[2 * i]
+    YTest[i] = target[2 * i + 1]
 YTrain = YTrain.long()
 YTest = YTest.long()
-
-# initialize 10^6 models and train to 100% accuracy
-outputs = {}
 
 # we use MSE Loss:
 # loss = torch.nn.MSELoss(size_average=True)
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
-for i in range(MC_num):
-    if i % 100 == 0:
-        print(datetime.datetime.now(), str(i))
+# initialize the function: (frequncy, frequency, complexity) dictionary
+
+# the following process should be run MC_num times:
+def process(process_key):
     model1 = torch.nn.Sequential()
     model1.add_module('FC1', torch.nn.Linear(n, neu))
     model1.add_module('FC2', torch.nn.Linear(neu, 2))
@@ -179,8 +182,8 @@ for i in range(MC_num):
         torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
 
     # define optimizer
-    optimizer1 = optim.SGD(model1.parameters(), lr=0.02)
-    optimizer2 = optim.SGD(model2.parameters(), lr=0.02)
+    optimizer1 = optim.SGD(model1.parameters(), lr=0.01)
+    optimizer2 = optim.SGD(model2.parameters(), lr=0.01)
 
     # train until convergence:
     pr1 = pr2 = 1
@@ -191,42 +194,63 @@ for i in range(MC_num):
         train(model2, loss, optimizer2, XTrain, YTrain)
         pr2 = get_error(model2, XTrain, YTrain, m_2)
     # record test set:
+    model2 = model2.eval()
     k1 = analyze(predict(model1, data))
     k2 = analyze(predict(model2, data))
+    del model1
+    del model2
     a = array_to_string(k1)
     b = array_to_string(k2)
     c = get_LVComplexity(k1)
     d = get_LVComplexity(k2)
-    if a in outputs.keys():
-        outputs[a] = (outputs[a][0] + float(1 / MC_num), outputs[a][1], c)
-    else:
-        outputs[a] = (1 / MC_num, 0, c)
-    if b in outputs.keys():
-        outputs[b] = (outputs[b][0], outputs[b][1] + float(1 / MC_num), d)
-    else:
-        outputs[b] = (0, float(1 / MC_num), d)
 
-    del model1
-    del model2
+    # pbar.update()
 
-# plot
-color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red', 'red', 'red']
-Z = torch.arange(0, 1, 0.001)
-
-plt.figure(figsize=(12, 7))
-for i in range(13):
-    l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
-    p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
-    plt.scatter(p, l, color=color[i], alpha=1.0, label='complexity range:' + str(10 * i) + '-' + str(10 * (i + 1)))
+    return (a,b,c,d)
 
 
-plt.plot(Z, Z, color='blue')
-plt.xlim(1 / MC_num, 1)
-plt.ylim(1 / MC_num, 1)
-plt.xlabel('P(f) SGD C_E BN')
-plt.ylabel('P(f) SGD C_E NN')
-plt.legend(bbox_to_anchor=(1.04,0.75), loc="center left")
-plt.xscale('log')
-plt.yscale('log')
-plt.show()
+if __name__ == '__main__':
+    pool = multiprocessing.Pool(16)
 
+    result = []
+    with tqdm(total=MC_num, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
+        for i, x in enumerate(pool.imap(process, tasks)):
+            t.update()
+            result.append(x)
+    pool.close()
+    pool.join()
+
+    # plot
+    outputs = {}
+    for output in result:
+        a,b,c,d = output
+        # print(key, a, b, c, d)
+        if a in outputs.keys():
+            outputs[a] = (outputs[a][0] + float(1 / MC_num), outputs[a][1], c)
+        else:
+            outputs[a] = (1 / MC_num, 0, c)
+        if b in outputs.keys():
+            outputs[b] = (outputs[b][0], outputs[b][1] + float(1 / MC_num), d)
+        else:
+            outputs[b] = (0, float(1 / MC_num), d)
+    # plot
+    color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red',
+             'red', 'red']
+    Z = torch.arange(0, 1, 0.001)
+
+    plt.figure(figsize=(12, 7))
+    for i in range(13):
+        l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
+        p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
+        plt.scatter(p, l, color=color[i], alpha=1.0, label='complexity range:' + str(10 * i) + '-' + str(10 * (i + 1)))
+
+    plt.plot(Z, Z, color='blue')
+    plt.xlim(1 / MC_num, 1)
+    plt.ylim(1 / MC_num, 1)
+    plt.xlabel('P(f) SGD C_E BN')
+    plt.ylabel('P(f) SGD C_E NN')
+    plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.savefig('bn_nn.png')
+    plt.show()
