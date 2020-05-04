@@ -111,9 +111,9 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network
 neu = 40  ## neurons per layer
-mod_num = 10000  ## numbers of models used for each example
+mod_num = 1000  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
-scale = 1.0  # STD of initialization
+scale = 10  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
@@ -375,7 +375,7 @@ def process(MC):
     return (LVC, LVC_BN, GE, GE_BN)
     # LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
 
-pool = multiprocessing.Pool(9)
+pool = multiprocessing.Pool(4)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
