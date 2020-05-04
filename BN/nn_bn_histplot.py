@@ -375,7 +375,7 @@ def process(MC):
     return (LVC, LVC_BN, GE, GE_BN)
     # LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
 
-pool = multiprocessing.Pool(4)
+pool = multiprocessing.Pool(9)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:

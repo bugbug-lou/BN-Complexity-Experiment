@@ -254,5 +254,5 @@ if __name__ == '__main__':
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('bn_nn1.png')
+    plt.savefig('bn_nn_49.png')
     plt.show()
