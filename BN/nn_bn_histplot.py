@@ -8,7 +8,7 @@ from torch.autograd import Variable
 from torch import optim
 from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
-import argparse
+import tqdm
 
 def array_to_string(x):
     y = ''
@@ -111,7 +111,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network
 neu = 40  ## neurons per layer
-mod_num = 500  ## numbers of models used for each example
+mod_num = 10000  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
 scale = 1.0  # STD of initialization
 
@@ -305,8 +305,8 @@ loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 ## train BN models and non-BN models based on different targets
 total_MC = 9
-for MC in range(total_MC):
-    print('MC sample ' + str(MC) + f'/{total_MC} starts!')
+def process(MC):
+    # print('MC sample ' + str(MC) + f'/{total_MC} starts!')
     LVC = np.zeros(mod_num)
     LVC_BN = np.zeros(mod_num)
     GE = np.zeros(mod_num)
@@ -372,11 +372,25 @@ for MC in range(total_MC):
         del model2
 
 
+    return (LVC, LVC_BN, GE, GE_BN)
+    # LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
 
-    LVC_outputs.append(LVC), LVC_output_BNs.append(LVC_BN), GE_outputs.append(GE), GE_output_BNs.append(GE_BN)
+pool = multiprocessing.Pool(9)
+tasks = range(total_MC)
+result = []
+with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
+    for i, x in enumerate(pool.imap(process, tasks)):
+        t.update()
+        result.append(x)
+pool.close()
+pool.join()
 
-
-
+for output in result:
+    LVC, LVC_BN, GE, GE_BN = output
+    LVC_outputs.append(LVC)
+    LVC_output_BNs.append(LVC_BN)
+    GE_outputs.append(GE)
+    GE_output_BNs.append(GE_BN)
 
 # produce a plot concerning output function complexities
 fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
