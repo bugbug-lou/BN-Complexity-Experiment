@@ -118,7 +118,7 @@ m = 2 ** n  # number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
-MC_num = 10 ** 2  # number of random initialization of models
+MC_num = 10 ** 5  # number of random initialization of models
 neu = 40  # neurons per layer
 mean = 0.0  # mean of initialization
 scale = 10  # STD of initialization
@@ -162,7 +162,7 @@ loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 for i in range(MC_num):
     if i % 100 == 0:
-        print(str(i) + 'aha!')
+        print(datetime.datetime.now(), str(i))
     model1 = torch.nn.Sequential()
     model1.add_module('FC1', torch.nn.Linear(n, neu))
     model1.add_module('FC2', torch.nn.Linear(neu, 2))
@@ -190,7 +190,6 @@ for i in range(MC_num):
     while pr2 > predict_threshold:
         train(model2, loss, optimizer2, XTrain, YTrain)
         pr2 = get_error(model2, XTrain, YTrain, m_2)
-
     # record test set:
     k1 = analyze(predict(model1, data))
     k2 = analyze(predict(model2, data))
@@ -214,6 +213,7 @@ for i in range(MC_num):
 color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red', 'red', 'red']
 Z = torch.arange(0, 1, 0.001)
 
+plt.figure(figsize=(12, 7))
 for i in range(13):
     l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
     p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
@@ -225,7 +225,7 @@ plt.xlim(1 / MC_num, 1)
 plt.ylim(1 / MC_num, 1)
 plt.xlabel('P(f) SGD C_E BN')
 plt.ylabel('P(f) SGD C_E NN')
-plt.legend(bbox_to_anchor=(1.04,0.5), loc="center left")
+plt.legend(bbox_to_anchor=(1.04,0.75), loc="center left")
 plt.xscale('log')
 plt.yscale('log')
 plt.show()

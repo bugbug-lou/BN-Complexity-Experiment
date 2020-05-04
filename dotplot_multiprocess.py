@@ -7,7 +7,7 @@ import multiprocessing
 import torch
 from torch.autograd import Variable
 from torch import optim
-from lempel_ziv_complexity import lempel_ziv_complexity
+# from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
 
@@ -158,10 +158,9 @@ YTest = YTest.long()
 loss = torch.nn.CrossEntropyLoss(size_average=True)
 
 # initialize the function: (frequncy, frequency, complexity) dictionary
-outputs = {}
 
 # the following process should be run MC_num times:
-def process(outputs):
+def process(process_key):
     model1 = torch.nn.Sequential()
     model1.add_module('FC1', torch.nn.Linear(n, neu))
     model1.add_module('FC2', torch.nn.Linear(neu, 2))
@@ -178,8 +177,8 @@ def process(outputs):
         torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
 
     # define optimizer
-    optimizer1 = optim.SGD(model1.parameters(), lr=0.02)
-    optimizer2 = optim.SGD(model2.parameters(), lr=0.02)
+    optimizer1 = optim.SGD(model1.parameters(), lr=0.01)
+    optimizer2 = optim.SGD(model2.parameters(), lr=0.01)
 
     # train until convergence:
     pr1 = pr2 = 1
@@ -189,54 +188,59 @@ def process(outputs):
     while pr2 > predict_threshold:
         train(model2, loss, optimizer2, XTrain, YTrain)
         pr2 = get_error(model2, XTrain, YTrain, m_2)
-
     # record test set:
+    model2 = model2.eval()
     k1 = analyze(predict(model1, data))
     k2 = analyze(predict(model2, data))
+    del model1
+    del model2
     a = array_to_string(k1)
     b = array_to_string(k2)
     c = get_LVComplexity(k1)
     d = get_LVComplexity(k2)
-    if a in outputs.keys():
-        outputs[a] = (outputs[a][0] + float(1 / MC_num), outputs[a][1], c)
-    else:
-        outputs[a] = (1 / MC_num, 0, c)
-    if b in outputs.keys():
-        outputs[b] = (outputs[b][0], outputs[b][1] + float(1 / MC_num), d)
-    else:
-        outputs[b] = (0, float(1 / MC_num), d)
 
-    del model1
-    del model2
+    return (a,b,c,d)
 
 
 if __name__ == '__main__':
-    MC_num = int(10 ** 4)  # number of random initialization of models
-    total_times =
-    manager = multiprocessing.Manager()
-    jobs = []
-    p = multiprocessing.Process(target=process, args=(return_dict, MC_num))
-    jobs.append(p)
-    p.start()
-    for proc in jobs:
-        proc.join()
+    MC_num = int(10 ** 6)  # number of random initialization of models
+    
+    pool = multiprocessing.Pool()
+    result = pool.map(process, range(MC_num))
+    pool.close()
+    pool.join()
 
+    # plot
+    outputs = {}
+    for output in result:
+        a,b,c,d = output
+        # print(key, a, b, c, d)
+        if a in outputs.keys():
+            outputs[a] = (outputs[a][0] + float(1 / MC_num), outputs[a][1], c)
+        else:
+            outputs[a] = (1 / MC_num, 0, c)
+        if b in outputs.keys():
+            outputs[b] = (outputs[b][0], outputs[b][1] + float(1 / MC_num), d)
+        else:
+            outputs[b] = (0, float(1 / MC_num), d)
+    # plot
+    color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red',
+             'red', 'red']
+    Z = torch.arange(0, 1, 0.001)
 
-# plot
-color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red', 'red', 'red']
-Z = torch.arange(0, 1, 0.001)
+    plt.figure(figsize=(12, 7))
+    for i in range(13):
+        l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
+        p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
+        plt.scatter(p, l, color=color[i], alpha=1.0, label='complexity range:' + str(10 * i) + '-' + str(10 * (i + 1)))
 
-for i in range(13):
-    l = [x for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
-    p = [y for (x, y, z) in list(outputs.values()) if i * 10 <= z < (i + 1) * 10]
-    plt.scatter(p, l, color=color[i], alpha=1.0, label='complexity range:' + str(10 * i) + '-' + str(10 * (i + 1)))
-
-plt.plot(Z, Z, color='blue')
-plt.xlim(1 / MC_num, 1)
-plt.ylim(1 / MC_num, 1)
-plt.xlabel('P(f) SGD C_E BN')
-plt.ylabel('P(f) SGD C_E NN')
-plt.legend(bbox_to_anchor=(1.04,0.5), loc="center left")
-plt.xscale('log')
-plt.yscale('log')
-plt.show()
+    plt.plot(Z, Z, color='blue')
+    plt.xlim(1 / MC_num, 1)
+    plt.ylim(1 / MC_num, 1)
+    plt.xlabel('P(f) SGD C_E BN')
+    plt.ylabel('P(f) SGD C_E NN')
+    plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.savefig('bn_nn.png')
+    plt.show()
