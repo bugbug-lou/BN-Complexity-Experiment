@@ -147,11 +147,11 @@ for i in range(m_2):
     XTest[i, :] = data[2 * i + 1, :]
 
 target = torch.zeros(m)
-for i in range(m_3):
-    target[i] = 1
-    target[i + m_2] = 1
-    target[i + m_3] = 0
-    target[i + m_3 + m_2] = 0
+for i in range(m):
+    if i%17 == 0 or i%17 == 1 or i%17 == 4 or i%17 == 9 or i%17 == 16 or i%17 == 8 or i%17 == 2 or i%17 == 15:
+        target[i] = 1
+    else:
+        target[i] = 0
 for i in range(m_2):
     YTrain[i] = target[2 * i]
     YTest[i] = target[2 * i + 1]
