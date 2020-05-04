@@ -210,7 +210,7 @@ def process(process_key):
 
 
 if __name__ == '__main__':
-    pool = multiprocessing.Pool(32)
+    pool = multiprocessing.Pool(40)
 
     result = []
     with tqdm(total=MC_num, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
@@ -252,5 +252,5 @@ if __name__ == '__main__':
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('bn_nn.png')
+    plt.savefig('bn_nn1.png')
     plt.show()
