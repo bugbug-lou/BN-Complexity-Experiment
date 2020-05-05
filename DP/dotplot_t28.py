@@ -126,7 +126,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
 neu = 40  # neurons per layer
 mean = 0.0  # mean of initialization
-scale = 10  # STD of initialization
+scale = 1.0  # STD of initialization
 
 # generate train data and test data
 # data: 7 * 128
