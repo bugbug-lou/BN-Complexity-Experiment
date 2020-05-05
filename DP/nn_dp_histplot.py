@@ -111,7 +111,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001 ## training accuracy threshold
 layer_num = 3  ## number of layers of the neural network
 neu = 128  ## neurons per layer
-mod_num = 100  ## numbers of models used for each example
+mod_num = 10  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
 scale = 10  # STD of initialization
 
@@ -329,11 +329,11 @@ def process(MC):
 
         # add some layers for model 2, this is with BN
         model2.add_module('FC1', torch.nn.Linear(n, neu))
-        model2.add_module('dp1', torch.nn.Dropout(0.9))
         model2.add_module('relu1', torch.nn.ReLU())
+        model2.add_module('dp1', torch.nn.Dropout(0.3))
         model2.add_module('FC2', torch.nn.Linear(neu, neu))
-        model2.add_module('dp2', torch.nn.Dropout(0.9))
         model2.add_module('relu2', torch.nn.ReLU())
+        model2.add_module('dp2', torch.nn.Dropout(0.3))
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         with torch.no_grad():
