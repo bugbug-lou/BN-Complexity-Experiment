@@ -113,7 +113,7 @@ layer_num = 3  ## number of layers of the neural network
 neu = 40  ## neurons per layer
 mod_num = 1000  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
-scale = 10  # STD of initialization
+scale = 1.0  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
