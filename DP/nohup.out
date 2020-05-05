@@ -1,0 +1,3 @@
+/Users/mmw/Documents/Virtualenvs/rloe/lib/python3.7/site-packages/torch/nn/_reduction.py:43: UserWarning: size_average and reduce args will be deprecated, please use reduction='mean' instead.
+  warnings.warn(warning.format(ret))
+00:00  0%|          | 0/9 [00:00<?, ?it/s]00:37 11%|█         | 1/9 [00:37<05:03, 37.89s/it]00:57 22%|██▏       | 2/9 [00:57<03:47, 32.45s/it]11:48 33%|███▎      | 3/9 [11:48<21:48, 218.04s/it]12:31 78%|███████▊  | 7/9 [12:31<05:11, 155.85s/it]12:31100%|██████████| 9/9 [12:31<00:00, 83.51s/it] 
