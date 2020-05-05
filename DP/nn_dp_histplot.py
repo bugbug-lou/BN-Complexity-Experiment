@@ -113,7 +113,7 @@ layer_num = 3  ## number of layers of the neural network
 neu = 128  ## neurons per layer
 mod_num = 100  ## numbers of models used for each example
 mean = 0.0  ## mean of initialization
-scale = 10  # STD of initialization
+scale = 1.0  # STD of initialization
 
 ## data: 7 * 128
 data = np.zeros([2 ** n, n], dtype=np.float32)
@@ -329,20 +329,17 @@ def process(MC):
 
         # add some layers for model 2, this is with BN
         model2.add_module('FC1', torch.nn.Linear(n, neu))
-        model2.add_module('dp1', torch.nn.Dropout(0.9))
+        model2.add_module('dp1', torch.nn.Dropout(0.3))
         model2.add_module('relu1', torch.nn.ReLU())
         model2.add_module('FC2', torch.nn.Linear(neu, neu))
-        model2.add_module('dp2', torch.nn.Dropout(0.9))
+        model2.add_module('dp2', torch.nn.Dropout(0.3))
         model2.add_module('relu2', torch.nn.ReLU())
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         with torch.no_grad():
-            for param_cur, param_best in zip(model1.FC1.parameters(), model2.FC1.parameters()):
-                param_cur.data = param_best.data
-            for param_cur, param_best in zip(model1.FC2.parameters(), model2.FC2.parameters()):
-                param_cur.data = param_best.data
-            for param_cur, param_best in zip(model1.FC3.parameters(), model2.FC3.parameters()):
-                param_cur.data = param_best.data
+            model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
+            model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
+            model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
 
         # define optimizer
         optimizer1 = optim.Adam(model1.parameters(), lr=0.005)
@@ -393,11 +390,12 @@ for output in result:
     GE_output_BNs.append(GE_BN)
 
 # produce a plot concerning output function complexities
+# produce a plot concerning output function complexities
 fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
 ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
 for h in range(9):
     ax[h].scatter(LVC_outputs[h], GE_outputs[h], label='NN', c='green', alpha=0.5)
-    ax[h].scatter(LVC_output_BNs[h], GE_output_BNs[h], label='NN+Dropout', c='red', alpha=0.5)
+    ax[h].scatter(LVC_output_DPs[h], GE_output_DPs[h], label='NN+DP', c='red', alpha=0.5)
     # ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
     ax[h].legend(loc="upper right")
     ax[h].set_xlabel(f'Target Complexity: {TLVS[h]}')
@@ -408,14 +406,16 @@ fig.show()
 # histoplot
 fig, ax = plt.subplots(nrows=9, ncols=2, figsize=(15, 15),constrained_layout=True)
 for h in range(9):
+    
     ax[h,0].hist(GE_outputs[h], bins = 20, range = (0.0,1.0), facecolor='blue', alpha=0.75, label='NN')
-    ax[h,0].hist(GE_output_BNs[h], bins = 20, range = (0.0,1.0), facecolor='red', alpha=0.75, label='NN + Dropout')
+    ax[h,0].hist(GE_output_DPs[h], bins = 20, range = (0.0,1.0), facecolor='red', alpha=0.75, label='NN + DP')
     ax[h, 1].hist(LVC_outputs[h],bins = 20, range = (0, 140), facecolor='blue', alpha=0.75, label='NN')
-    ax[h, 1].hist(LVC_output_BNs[h], bins = 20, range = (0, 140), facecolor='red', alpha=0.75, label='NN + Dropout')
+    ax[h, 1].hist(LVC_output_DPs[h], bins = 20, range = (0, 140), facecolor='red', alpha=0.75, label='NN + DP')
+    ax[h, 1].axvline(TLVS[h], 0, mod_num, color = 'black', label = 'target complexity', linestyle = 'dashed')
     ax[h, 0].legend(loc="upper right")
     ax[h, 1].legend(loc="upper right")
-    ax[h, 0].set_xlabel('Error rate histplot:' + ' ' + 'tar_complexity =' + ' ' + str(TLVS[h]))
-    ax[h, 1].set_xlabel('Complexity histplot:' + ' ' + 'tar_complexity =' + ' ' + str(TLVS[h]))
+    ax[h, 0].set_xlabel('Error rate histplot' + '' + 'tcomplexity =' + '' + str(TLVS[h]))
+    ax[h, 1].set_xlabel('Complexity histplot' + '' + 'tcomplexity =' + '' + str(TLVS[h]))
     ax[h, 0].set_ylabel('Error Rates')
     ax[h, 1].set_ylabel('Complexity')
 fig.show()
