@@ -126,7 +126,7 @@ m_3 = 2 ** (n - 2)
 predict_threshold = 0.001  # training accuracy threshold
 neu = 128  # neurons per layer
 mean = 0.0  # mean of initialization
-scale = 10  # STD of initialization
+scale = 1.0  # STD of initialization
 
 # generate train data and test data
 # data: 7 * 128
@@ -180,8 +180,8 @@ def process(process_key):
     model2.add_module('dp', torch.nn.Dropout(0.5))
     model2.add_module('FC2', torch.nn.Linear(neu, 2))
     with torch.no_grad():
-        torch.nn.init.normal_(model2.FC1.weight, mean=mean, std=scale)
-        torch.nn.init.normal_(model2.FC2.weight, mean=mean, std=scale)
+        model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
+        model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
 
     # define optimizer
     optimizer1 = optim.SGD(model1.parameters(), lr=0.1)
