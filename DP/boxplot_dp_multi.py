@@ -253,7 +253,7 @@ for output in result:
 # plot barcode based on the outputs
 fig, ((ax1, ax2, ax3, ax4, ax5), (ax6, ax7, ax8, ax9, ax10)) = plt.subplots(nrows=2, ncols=5, figsize=(25, 15))
 ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10)
-colors = ['lightblue', 'purple']
+colors = ['deepskyblue', 'purple']
 labels = ['NN', 'NN+DP']
 i = 0
 for h in sorted(dic1.keys()):
