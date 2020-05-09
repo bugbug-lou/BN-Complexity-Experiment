@@ -137,7 +137,7 @@ for i in range(m_2):
     XTest[i, :] = data[i + m_2, :]
 
 # set probability:
-l = 4
+l = 2
 total_MC = 10 ** (l)
 ps = [0.05, 0.2, 0.3, 0.4, 0.5]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
