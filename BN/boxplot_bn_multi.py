@@ -160,7 +160,7 @@ def process(MC):
     t = t.long()
     t_c = get_LVComplexity(t)
     h = (t_c - t_c % 10) / 10
-    if h<= 9:
+    if h<= 10 and 1 <= h:
         YTrain = torch.zeros(m_2)
         YTest = torch.zeros(m_2)
         for j in range(m_2):
@@ -243,7 +243,7 @@ pool.join()
 
 for output in result:
     h, a, b = output
-    if int(h) <= 9:
+    if int(h) <= 10 and 1 <= int(h):
         if h in dic1.keys():
             dic1[h].append(a)
         else:
