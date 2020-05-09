@@ -9,7 +9,7 @@ from torch import optim
 from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import tqdm
-
+import time
 
 def array_to_string(x):
     y = ''
@@ -116,7 +116,7 @@ n = 7  ## dimension of input data, user-defined
 m = 2 ** n  ## number of data points
 m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
-predict_threshold = 0.001  ## training accuracy threshold
+predict_threshold = 0.01  ## training accuracy threshold
 neu = 40
 mean = 0.0  ## mean of initialization
 scale = 1.0  # STD of initialization
@@ -205,10 +205,11 @@ def process(MC):
         # train until convergence
         pr1 = 1
         pr2 = 1
-        while pr1 > predict_threshold:
+        timeout = time.time() + 15
+        while pr1 > predict_threshold and time.time() < timeout:
             train(model1, loss, optimizer1, XTrain, YTrain)
             pr1 = get_error(model1, XTrain, YTrain, 2 ** (n - 1))
-        while pr2 > predict_threshold:
+        while pr2 > predict_threshold and time.time() < timeout:
             train(model2, loss, optimizer2, XTrain, YTrain)
             pr2 = get_error(model2, XTrain, YTrain, 2 ** (n - 1))
 
@@ -230,7 +231,7 @@ def process(MC):
         return (h, 0, 0)
 
 
-pool = multiprocessing.Pool(9)
+pool = multiprocessing.Pool(14)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
