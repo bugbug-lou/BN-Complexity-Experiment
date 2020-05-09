@@ -139,7 +139,7 @@ for i in range(m_2):
 # set probability:
 l = 4
 total_MC = 10 ** (l)
-ps = [0.05, 0.2, 0.3, 0.4, 0.5]
+ps = [0.05, 0.1, 0.15, 0.2, 0.25]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
 dic1 = {}  # a dictionary for NN output
 dic2 = {}  # a dictionary for NNdp output
@@ -160,71 +160,74 @@ def process(MC):
     t = t.long()
     t_c = get_LVComplexity(t)
     h = (t_c - t_c % 10) / 10
-    YTrain = torch.zeros(m_2)
-    YTest = torch.zeros(m_2)
-    for j in range(m_2):
-        YTrain[j] = t[j]
-        YTest[j] = t[j + m_2]
-    YTrain = YTrain.long()
-    YTest = YTest.long()
+    if h<= 9:
+        YTrain = torch.zeros(m_2)
+        YTest = torch.zeros(m_2)
+        for j in range(m_2):
+            YTrain[j] = t[j]
+            YTest[j] = t[j + m_2]
+        YTrain = YTrain.long()
+        YTest = YTest.long()
 
-    # then train NN, BN models on the target
-    model1 = torch.nn.Sequential()  # model without batch normalization
-    model2 = torch.nn.Sequential()  # model with batch normalization
+        # then train NN, BN models on the target
+        model1 = torch.nn.Sequential()  # model without batch normalization
+        model2 = torch.nn.Sequential()  # model with batch normalization
 
-    # add some layers for model 1, this is without BN
-    model1.add_module('FC1', torch.nn.Linear(n, neu))
-    model1.add_module('relu1', torch.nn.ReLU())
-    model1.add_module('FC2', torch.nn.Linear(neu, neu))
-    model1.add_module('relu2', torch.nn.ReLU())
-    model1.add_module('FC3', torch.nn.Linear(neu, 2))
-    with torch.no_grad():
-        torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
-        torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
-        torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
+        # add some layers for model 1, this is without BN
+        model1.add_module('FC1', torch.nn.Linear(n, neu))
+        model1.add_module('relu1', torch.nn.ReLU())
+        model1.add_module('FC2', torch.nn.Linear(neu, neu))
+        model1.add_module('relu2', torch.nn.ReLU())
+        model1.add_module('FC3', torch.nn.Linear(neu, 2))
+        with torch.no_grad():
+            torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
 
-    # add some layers for model 2, this is with BN
-    model2.add_module('FC1', torch.nn.Linear(n, neu))
-    model2.add_module('relu1', torch.nn.ReLU())
-    model2.add_module('dp1', torch.nn.Dropout(0.3))
-    model2.add_module('FC2', torch.nn.Linear(neu, neu))
-    model2.add_module('relu2', torch.nn.ReLU())
-    model2.add_module('dp2', torch.nn.Dropout(0.3))
-    model2.add_module('FC3', torch.nn.Linear(neu, 2))
+        # add some layers for model 2, this is with BN
+        model2.add_module('FC1', torch.nn.Linear(n, neu))
+        model2.add_module('relu1', torch.nn.ReLU())
+        model2.add_module('dp1', torch.nn.Dropout(0.3))
+        model2.add_module('FC2', torch.nn.Linear(neu, neu))
+        model2.add_module('relu2', torch.nn.ReLU())
+        model2.add_module('dp2', torch.nn.Dropout(0.3))
+        model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
-    with torch.no_grad():
-        model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
-        model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
-        model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
+        with torch.no_grad():
+            model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
+            model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
+            model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
 
-    # define optimizer
-    optimizer1 = optim.Adam(model1.parameters(), lr=0.05)
-    optimizer2 = optim.Adam(model2.parameters(), lr=0.05)
+        # define optimizer
+        optimizer1 = optim.Adam(model1.parameters(), lr=0.05)
+        optimizer2 = optim.Adam(model2.parameters(), lr=0.05)
 
-    # train until convergence
-    pr1 = 1
-    pr2 = 1
-    while pr1 > predict_threshold:
-        train(model1, loss, optimizer1, XTrain, YTrain)
-        pr1 = get_error(model1, XTrain, YTrain, 2 ** (n - 1))
-    while pr2 > predict_threshold:
-        train(model2, loss, optimizer2, XTrain, YTrain)
-        pr2 = get_error(model2, XTrain, YTrain, 2 ** (n - 1))
+        # train until convergence
+        pr1 = 1
+        pr2 = 1
+        while pr1 > predict_threshold:
+            train(model1, loss, optimizer1, XTrain, YTrain)
+            pr1 = get_error(model1, XTrain, YTrain, 2 ** (n - 1))
+        while pr2 > predict_threshold:
+            train(model2, loss, optimizer2, XTrain, YTrain)
+            pr2 = get_error(model2, XTrain, YTrain, 2 ** (n - 1))
 
-    # prediction
-    Aggregate1 = predict(model1, data)
-    Aggregate2 = predict(model2, data)
-    Output_NN = Output(Aggregate1)
-    Output_BN = Output(Aggregate2)
-    Out_NN = get_LVComplexity(Output_NN)
-    Out_BN = get_LVComplexity(Output_BN)
-    a = (Out_NN - t_c) / t_c
-    b = (Out_BN - t_c) / t_c
+        # prediction
+        Aggregate1 = predict(model1, data)
+        Aggregate2 = predict(model2, data)
+        Output_NN = Output(Aggregate1)
+        Output_BN = Output(Aggregate2)
+        Out_NN = get_LVComplexity(Output_NN)
+        Out_BN = get_LVComplexity(Output_BN)
+        a = (Out_NN - t_c) / t_c
+        b = (Out_BN - t_c) / t_c
 
-    del model1
-    del model2
+        del model1
+        del model2
 
-    return (h, a, b)
+        return (h, a, b)
+    else:
+        return (h, 0, 0)
 
 
 pool = multiprocessing.Pool(9)
@@ -239,20 +242,20 @@ pool.join()
 
 for output in result:
     h, a, b = output
-    if h <= 10:
+    if int(h) <= 9:
         if h in dic1.keys():
             dic1[h].append(a)
         else:
             dic1[h] = [a]
         if h in dic2.keys():
-            dic2[h].append(a)
+            dic2[h].append(b)
         else:
-            dic2[h] = [a]
+            dic2[h] = [b]
 
 
 # plot barcode based on the outputs
-fig, ((ax1, ax2, ax3, ax4, ax5), (ax6, ax7, ax8, ax9, ax10)) = plt.subplots(nrows=2, ncols=5, figsize=(25, 15))
-ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10)
+fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9)) = plt.subplots(nrows=3, ncols=3, figsize=(25, 25))
+ax = (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9)
 colors = ['lightblue', 'darkviolet']
 labels = ['NN', 'NN+DP']
 i = 0
