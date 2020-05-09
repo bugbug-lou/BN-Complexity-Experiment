@@ -137,7 +137,7 @@ for i in range(m_2):
     XTest[i, :] = data[i + m_2, :]
 
 # set probability:
-l = 5
+l = 4
 total_MC = 10 ** (l)
 ps = [0.05, 0.1, 0.15, 0.2, 0.25]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
@@ -160,7 +160,7 @@ def process(MC):
     t = t.long()
     t_c = get_LVComplexity(t)
     h = (t_c - t_c % 10) / 10
-    if h<= 9:
+    if h<= 10 and 1<= h:
         YTrain = torch.zeros(m_2)
         YTest = torch.zeros(m_2)
         for j in range(m_2):
@@ -243,7 +243,7 @@ pool.join()
 
 for output in result:
     h, a, b = output
-    if int(h) <= 9:
+    if int(h) <= 10 and 1 <= int(h):
         if h in dic1.keys():
             dic1[h].append(a)
         else:
