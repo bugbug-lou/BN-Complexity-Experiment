@@ -137,7 +137,7 @@ for i in range(m_2):
     XTest[i, :] = data[i + m_2, :]
 
 # set probability:
-l = 2
+l = 4
 total_MC = 10 ** (l)
 ps = [0.05, 0.1, 0.15, 0.2, 0.25]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
@@ -230,7 +230,7 @@ def process(MC):
         return (h, 0, 0)
 
 
-pool = multiprocessing.Pool(9)
+pool = multiprocessing.Pool(15)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
