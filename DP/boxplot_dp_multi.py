@@ -227,7 +227,7 @@ def process(MC):
     return (h, a, b)
 
 
-pool = multiprocessing.Pool(15)
+pool = multiprocessing.Pool(9)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
