@@ -249,7 +249,7 @@ if __name__ == '__main__':
     plt.plot(Z, Z, color='blue')
     plt.xlim(1 / MC_num, 1)
     plt.ylim(1 / MC_num, 1)
-    plt.xlabel('P(f) SGD C_E DP')
+    plt.xlabel('P(f) SGD C_E DROPOUT')
     plt.ylabel('P(f) SGD C_E NN')
     plt.legend(bbox_to_anchor=(1.04, 0.75), loc="center left")
     plt.xscale('log')
