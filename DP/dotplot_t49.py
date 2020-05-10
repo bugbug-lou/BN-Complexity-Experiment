@@ -143,18 +143,18 @@ XTest = torch.zeros([m_2, n])
 YTrain = torch.zeros(m_2)
 YTest = torch.zeros(m_2)
 for i in range(m_2):
-    XTrain[i, :] = data[2 * i, :]
-    XTest[i, :] = data[2 * i + 1, :]
+    XTrain[i, :] = data[i, :]
+    XTest[i, :] = data[i + m_2, :]
 
-target = torch.zeros(m)
-for i in range(m):
-    if i%17 == 0 or i%17 == 1 or i%17 == 4 or i%17 == 9 or i%17 == 16 or i%17 == 8 or i%17 == 2 or i%17 == 15:
-        target[i] = 1
-    else:
-        target[i] = 0
+target = torch.tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0,
+                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                  1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                  1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1, 1, 1, 1])
 for i in range(m_2):
-    YTrain[i] = target[2 * i]
-    YTest[i] = target[2 * i + 1]
+    YTrain[i] = target[i]
+    YTest[i] = target[i + m_2]
 YTrain = YTrain.long()
 YTest = YTest.long()
 
@@ -236,7 +236,7 @@ if __name__ == '__main__':
         else:
             outputs[b] = (0, float(1 / MC_num), d)
     # plot
-    color = ['black', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red', 'red', 'red', 'red',
+    color = ['black', 'black', 'black', 'purple', 'purple', 'darkblue', 'darkgreen', 'yellow', 'orange', 'orangered', 'red',
              'red', 'red']
     Z = torch.arange(0, 1, 0.001)
 
