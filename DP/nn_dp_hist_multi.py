@@ -349,8 +349,8 @@ def process(MC):
             model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
 
         # define optimizer
-        optimizer1 = optim.Adam(model1.parameters(), lr=0.1)
-        optimizer2 = optim.Adam(model2.parameters(), lr=0.1)
+        optimizer1 = optim.Adam(model1.parameters(), lr=0.05)
+        optimizer2 = optim.Adam(model2.parameters(), lr=0.05)
 
         # train until convergence
         pr1 = 1
