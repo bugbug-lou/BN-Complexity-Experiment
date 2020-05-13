@@ -277,7 +277,7 @@ for h in sorted(dic1.keys()):
     if p/2 < alpha and t < 0:
         test_results.append('BN Greater')
     else:
-        test_results.append('Null Hypothesis')
+        test_results.append('Means Equal')
 
 file_path1 = 'D:/pickles/dic1.pkl'
 outfile1 = open(file_path1, 'wb')
