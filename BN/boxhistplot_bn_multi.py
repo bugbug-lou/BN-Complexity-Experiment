@@ -354,7 +354,7 @@ for h in sorted(dic3.keys()):
     ax[i].scatter(np.asarray(dic2[h]), np.asarray(dic4[h]), label='NN+BN', c='red', alpha=0.5)
     # ax[h].scatter(LVC_output_UEs[h], GE_output_UEs[h], label='Unbiased Estimator', c='blue', alpha=0.5)
     ax[i].legend(loc="upper right")
-    ax[i].set_xlabel('Target Complexity: str(h*10) - str((h+1)*10)')
+    ax[i].set_xlabel('Target Complexity: ' + str(h*10) + '-' + str((h+1)*10))
     ax[i].set_ylabel('Generalization/Test Error')
     i = i+1
 fig.show()
