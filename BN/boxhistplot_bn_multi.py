@@ -378,3 +378,7 @@ for h in sorted(dic3.keys()):
     ax[i, 1].set_ylabel('Complexity')
     i = i+1
 fig.show()
+
+print(p_val)
+print(t_stats)
+print(test_results)
