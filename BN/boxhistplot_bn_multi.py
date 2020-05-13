@@ -249,7 +249,7 @@ pool.join()
 
 for output in result:
     h, a, b, c, d = output
-    if int(h) <= 9:
+    if int(h) <= 10 and 2 <= int(h):
         if h in dic1.keys():
             dic1[h].append(a)
             dic2[h].append(b)
