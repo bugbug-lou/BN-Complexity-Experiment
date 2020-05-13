@@ -273,9 +273,9 @@ for h in sorted(dic1.keys()):
     t_stats.append(t)
     p_val.append(p)
     if p/2 < alpha and t > 0:
-        test_results.append('BN Greater')
-    if p/2 < alpha and t < 0:
         test_results.append('BN Lower')
+    if p/2 < alpha and t < 0:
+        test_results.append('BN Greater')
     else:
         test_results.append('Null Hypothesis')
 
