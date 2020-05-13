@@ -237,7 +237,7 @@ def process(MC):
         return (h, 0, 0, 0, 0)
 
 
-pool = multiprocessing.Pool(14)
+pool = multiprocessing.Pool(16)
 tasks = range(total_MC)
 result = []
 with tqdm.tqdm(total=total_MC, mininterval=5, bar_format='{elapsed}{l_bar}{bar}{r_bar}') as t:
@@ -279,32 +279,34 @@ for h in sorted(dic1.keys()):
     else:
         test_results.append('Null Hypothesis')
 
-file_path1 = 'D:/pickles/dic1.pkl'
+folder_path = '/Users/mmw/Documents/GitHub/BN-Complexity-Experiment/results'
+
+file_path1 = folder_path + '/pickles/dic1.pkl'
 outfile1 = open(file_path1, 'wb')
 pickle.dump(dic1, outfile1)
 outfile1.close()
 
-file_path2 = 'D:/pickles/dic2.pkl'
+file_path2 = folder_path + '/pickles/dic2.pkl'
 outfile2 = open(file_path2, 'wb')
 pickle.dump(dic2, outfile2)
 outfile2.close()
 
-file_path3 = 'D:/pickles/dic3.pkl'
+file_path3 = folder_path + '/pickles/dic3.pkl'
 outfile3 = open(file_path3, 'wb')
 pickle.dump(dic3, outfile3)
 outfile3.close()
 
-file_path4 = 'D:/pickles/dic4.pkl'
+file_path4 = folder_path + '/pickles/dic4.pkl'
 outfile4 = open(file_path4, 'wb')
 pickle.dump(dic4, outfile4)
 outfile4.close()
 
-file_path5 = 'D:/pickles/p_val.pkl'
+file_path5 = folder_path + '/pickles/p_val.pkl'
 outfile5 = open(file_path5, 'wb')
 pickle.dump(p_val, outfile5)
 outfile5.close()
 
-file_path6 = 'D:/pickles/t_stats.pkl'
+file_path6 = folder_path + '/pickles/t_stats.pkl'
 outfile6 = open(file_path6, 'wb')
 pickle.dump(t_stats, outfile6)
 outfile6.close()
@@ -370,8 +372,8 @@ for h in sorted(dic3.keys()):
     ax[i, 1].axvline(x = 0, color='black', label='target complexity', linestyle='dashed')
     ax[i, 0].legend(loc="upper right")
     ax[i, 1].legend(loc="upper right")
-    ax[i, 0].set_xlabel('Error rate histplot' + '' + 'Target Complexity: str(h*10) - str((h+1)*10)')
-    ax[i, 1].set_xlabel('Complexity histplot' + '' + 'Target Complexity: str(h*10) - str((h+1)*10)')
+    ax[i, 0].set_xlabel('Error rate histplot' + ', ' + 'Target Complexity: str(h*10) - str((h+1)*10)')
+    ax[i, 1].set_xlabel('Complexity histplot' + ', ' + 'Target Complexity: str(h*10) - str((h+1)*10)')
     ax[i, 0].set_ylabel('Error Rates')
     ax[i, 1].set_ylabel('Complexity')
     i = i+1
