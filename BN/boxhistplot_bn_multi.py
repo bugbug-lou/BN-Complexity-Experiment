@@ -164,7 +164,7 @@ def process(MC):
     t = t.long()
     t_c = get_LVComplexity(t)
     h = (t_c - t_c % 10) / 10
-    if h<= 10 and 1 <= h:
+    if h <= 10 and 2 <= h:
         YTrain = torch.zeros(m_2)
         YTest = torch.zeros(m_2)
         for j in range(m_2):
@@ -365,13 +365,13 @@ i = 0
 for h in sorted(dic3.keys()):
     ax[i, 0].hist(np.asarray(dic3[h]), bins=20, range=(0.0, 1.0), facecolor='skyblue', alpha=0.75, label='NN')
     ax[i, 0].hist(np.asarray(dic4[h]), bins=20, range=(0.0, 1.0), facecolor='orange', alpha=0.75, label='NN + BN')
-    ax[i, 1].hist(np.asarray(dic1[h]), bins=20, range=(-1.0, 1.0), facecolor='skyblue', alpha=0.75, label='NN')
-    ax[i, 1].hist(np.asarray(dic2[h]), bins=20, range=(-1.0, 1.0), facecolor='orange', alpha=0.75, label='NN + BN')
+    ax[i, 1].hist(np.asarray(dic1[h]), bins=20, range=(-1.0, 1.0), facecolor='blue', alpha=0.75, label='NN')
+    ax[i, 1].hist(np.asarray(dic2[h]), bins=20, range=(-1.0, 1.0), facecolor='red', alpha=0.75, label='NN + BN')
     ax[i, 1].axvline(x = 0, color='black', label='target complexity', linestyle='dashed')
     ax[i, 0].legend(loc="upper right")
     ax[i, 1].legend(loc="upper right")
-    ax[i, 0].set_xlabel('Error rate histplot' + '' + 'Target Complexity: str(h*10) - str((h+1)*10)')
-    ax[i, 1].set_xlabel('Complexity histplot' + '' + 'Target Complexity: str(h*10) - str((h+1)*10)')
+    ax[i, 0].set_xlabel('Error rate histplot' + ' ' + 'Target Complexity: ' + str(h*10) + '-' + str((h+1)*10))
+    ax[i, 1].set_xlabel('Complexity histplot' + ' ' + 'Target Complexity: ' + str(h*10) + '-' + str((h+1)*10))
     ax[i, 0].set_ylabel('Error Rates')
     ax[i, 1].set_ylabel('Complexity')
     i = i+1
