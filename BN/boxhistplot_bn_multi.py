@@ -139,7 +139,7 @@ for i in range(m_2):
     XTest[i, :] = data[i + m_2, :]
 
 # set probability:
-l = 4
+l = 5
 total_MC = 10 ** (l)
 ps = [0.05, 0.1, 0.15, 0.2, 0.25]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
@@ -182,11 +182,23 @@ def process(MC):
         model1.add_module('relu1', torch.nn.ReLU())
         model1.add_module('FC2', torch.nn.Linear(neu, neu))
         model1.add_module('relu2', torch.nn.ReLU())
-        model1.add_module('FC3', torch.nn.Linear(neu, 2))
+        model1.add_module('FC3', torch.nn.Linear(neu, neu))
+        model1.add_module('relu3', torch.nn.ReLU())
+        model1.add_module('FC4', torch.nn.Linear(neu, neu))
+        model1.add_module('relu4', torch.nn.ReLU())
+        model1.add_module('FC5', torch.nn.Linear(neu, neu))
+        model1.add_module('relu6', torch.nn.ReLU())
+        model1.add_module('FC5', torch.nn.Linear(neu, neu))
+        model1.add_module('relu6', torch.nn.ReLU())
+        model1.add_module('FC7', torch.nn.Linear(neu, 2))
         with torch.no_grad():
             torch.nn.init.normal_(model1.FC1.weight, mean=mean, std=scale)
             torch.nn.init.normal_(model1.FC2.weight, mean=mean, std=scale)
             torch.nn.init.normal_(model1.FC3.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC4.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC5.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC6.weight, mean=mean, std=scale)
+            torch.nn.init.normal_(model1.FC7.weight, mean=mean, std=scale)
 
         # add some layers for model 2, this is with BN
         model2.add_module('FC1', torch.nn.Linear(n, neu))
@@ -195,13 +207,28 @@ def process(MC):
         model2.add_module('FC2', torch.nn.Linear(neu, neu))
         model2.add_module('bn2', torch.nn.BatchNorm1d(neu, momentum=0.1))
         model2.add_module('relu2', torch.nn.ReLU())
-        model2.add_module('FC3', torch.nn.Linear(neu, 2))
+        model2.add_module('FC3', torch.nn.Linear(neu, neu))
+        model2.add_module('bn3', torch.nn.BatchNorm1d(neu, momentum=0.1))
+        model2.add_module('relu3', torch.nn.ReLU())
+        model2.add_module('FC4', torch.nn.Linear(neu, neu))
+        model2.add_module('bn4', torch.nn.BatchNorm1d(neu, momentum=0.1))
+        model2.add_module('relu4', torch.nn.ReLU())
+        model2.add_module('FC5', torch.nn.Linear(neu, neu))
+        model2.add_module('bn5', torch.nn.BatchNorm1d(neu, momentum=0.1))
+        model2.add_module('relu5', torch.nn.ReLU())
+        model2.add_module('FC6', torch.nn.Linear(neu, neu))
+        model2.add_module('bn6', torch.nn.BatchNorm1d(neu, momentum=0.1))
+        model2.add_module('relu6', torch.nn.ReLU())
+        model2.add_module('FC7', torch.nn.Linear(neu, 2))
 
         with torch.no_grad():
             model2.FC1.weight = torch.nn.Parameter(model1.FC1.weight.clone().detach())
             model2.FC2.weight = torch.nn.Parameter(model1.FC2.weight.clone().detach())
             model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
-
+            model2.FC4.weight = torch.nn.Parameter(model1.FC4.weight.clone().detach())
+            model2.FC5.weight = torch.nn.Parameter(model1.FC5.weight.clone().detach())
+            model2.FC6.weight = torch.nn.Parameter(model1.FC6.weight.clone().detach())
+            model2.FC7.weight = torch.nn.Parameter(model1.FC7.weight.clone().detach())
         # define optimizer
         optimizer1 = optim.Adam(model1.parameters(), lr=0.1)
         optimizer2 = optim.Adam(model2.parameters(), lr=0.1)
