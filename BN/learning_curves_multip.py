@@ -117,7 +117,7 @@ m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 20  ## training time
+epochs = 50  ## training time
 mean = 0.0  ## mean of initialization
 scale = 1.0  ## var of initialization
 
