@@ -272,37 +272,37 @@ for h in sorted(dic1.keys()):
     p_val2.append(p2)
 
 
-file_path1 = 'D:/pickles/Dic1.pkl'
+file_path1 = 'outfile1.pkl'
 outfile1 = open(file_path1, 'wb')
 pickle.dump(dic1, outfile1)
 outfile1.close()
 
-file_path2 = 'D:/pickles/Dic2.pkl'
+file_path2 = 'outfile2.pkl'
 outfile2 = open(file_path2, 'wb')
 pickle.dump(dic2, outfile2)
 outfile2.close()
 
-file_path3 = 'D:/pickles/Dic3.pkl'
+file_path3 = 'outfile3.pkl'
 outfile3 = open(file_path3, 'wb')
 pickle.dump(dic3, outfile3)
 outfile3.close()
 
-file_path5 = 'D:/pickles/p_val1.pkl'
+file_path5 = 'outfile5.pkl'
 outfile5 = open(file_path5, 'wb')
 pickle.dump(p_val1, outfile5)
 outfile5.close()
 
-file_path6 = 'D:/pickles/p_val2.pkl'
+file_path6 = 'outfile6.pkl'
 outfile6 = open(file_path6, 'wb')
 pickle.dump(p_val2, outfile6)
 outfile6.close()
 
-file_path8= 'D:/pickles/tstats1.pkl'
+file_path8= 'outfile8.pkl'
 outfile8 = open(file_path8, 'wb')
 pickle.dump(t_stats1, outfile8)
 outfile8.close()
 
-file_path9= 'D:/pickles/tstats2.pkl'
+file_path9= 'outfile9.pkl'
 outfile9 = open(file_path9, 'wb')
 pickle.dump(t_stats2, outfile9)
 outfile9.close()
