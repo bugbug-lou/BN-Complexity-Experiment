@@ -393,6 +393,7 @@ def process(i, MC_num=MC_num):
         b = np.asarray(Complexity_agg_DP)
         sd[epoch] = np.sqrt(np.var(a))
         sd_BN[epoch] = np.sqrt(np.var(b))
+        
 
     return (error_nonDP, error_DP, non_DP_mean_complexity, DP_mean_complexity, sd, sd_BN)
 
