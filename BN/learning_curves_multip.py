@@ -10,6 +10,7 @@ from lempel_ziv_complexity import lempel_ziv_complexity
 import collections
 import argparse
 import pickle
+import os.path
 
 def array_to_string(x):
     y = ''
@@ -117,7 +118,7 @@ m_2 = 2 ** (n - 1)
 m_3 = 2 ** (n - 2)
 layer_num = 3  ## number of layers of the neural network, user-defined
 neu = 40  ## neurons per layer
-epochs = 20  ## training time
+epochs = 50  ## training time
 mean = 0.0  ## mean of initialization
 scale = 1.0  ## var of initialization
 
@@ -309,7 +310,7 @@ YTrains.append(YTrain.clone())
 YTests.append(YTest.clone())
 TLVS.append(int(get_LVComplexity(t)))
 # initialize MC number of models
-MC_num = 20  ## number of models
+MC_num = 500  ## number of models
 total_MC = 9
 error_nonDPs, error_DPs, nonDP_mcom, DP_mcom, sds, sd_BNs = [], [], [], [], [], []
 
@@ -415,32 +416,33 @@ for output in result:
     sds.append(k[4])
     sd_BNs.append(k[5])
 
-file_path1 = 'D:/pickles/error_nonDPs.pkl'
+k = 'D:/pickles'
+file_path1 = os.path.join(k, 'error_nonDPs.pkl')
 outfile1 = open(file_path1, 'wb')
 pickle.dump(error_nonDPs, outfile1)
 outfile1.close()
 
-file_path2 = 'D:/pickles/error_DPs.pkl'
+file_path2 = os.path.join(k, 'error_DPs.pkl')
 outfile2 = open(file_path2, 'wb')
 pickle.dump(error_DPs, outfile2)
 outfile2.close()
 
-file_path3 = 'D:/pickles/nonDP_mcom.pkl'
+file_path3 = os.path.join(k, 'nonDP_mcom.pkl')
 outfile3 = open(file_path3, 'wb')
 pickle.dump(nonDP_mcom, outfile3)
 outfile3.close()
 
-file_path4 = 'D:/pickles/DP_mcom.pkl'
+file_path4 = os.path.join(k, 'DP_mcom.pkl')
 outfile4 = open(file_path4, 'wb')
 pickle.dump(DP_mcom, outfile4)
 outfile4.close()
 
-file_path5 = 'D:/pickles/sds.pkl'
+file_path5 = os.path.join(k, 'sds.pkl')
 outfile5 = open(file_path5, 'wb')
 pickle.dump(sds, outfile5)
 outfile5.close()
 
-file_path6 = 'D:/pickles/sd_BNs.pkl'
+file_path6 = os.path.join(k, 'sd_BNs.pkl')
 outfile6 = open(file_path6, 'wb')
 pickle.dump(sd_BNs, outfile6)
 outfile6.close()
