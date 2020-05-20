@@ -15,6 +15,7 @@ import tqdm
 import time
 import scipy.stats as stats
 import pickle
+import os.path
 
 def array_to_string(x):
     y = ''
@@ -142,7 +143,7 @@ for i in range(m_2):
     XTest[i, :] = data[i + m_2, :]
 
 # set probability:
-l = 4
+l = 5
 total_MC = 10 ** (l)
 ps = [0.05, 0.1, 0.15, 0.25, 0.4]
 MCs = [(1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5, (1 * total_MC) / 5]
@@ -271,38 +272,79 @@ for h in sorted(dic1.keys()):
     p_val1.append(p1)
     p_val2.append(p2)
 
+# make confidence interval
+a, b, c = [], [], []
+z = 2.576 # z-score corresponding to ci
+for h in sorted(dic1.keys()):
+    count = 0
+    k = np.asarray(dic1[h]) > np.asarray(dic2[h])
+    for i in range(len(k)):
+        if k[i] == True:
+            count = count + 1
+    l = 0
+    s = np.asarray(dic1[h]) < np.asarray(dic2[h])
+    for i in range(len(s)):
+        if s[i] == True:
+            l = l + 1
+    p1 = count/len(k)
+    p2 = l/len(s)
+    a.append((p1 - z * np.sqrt(p1*(1-p1)/len(k)), p1 + z * np.sqrt(p1*(1-p1)/len(k))))
+    b.append((p2 - z * np.sqrt(p2*(1-p2)/len(k)), p2 + z * np.sqrt(p2*(1-p2)/len(k))))
+    if p2 - z * np.sqrt(p2*(1-p2)/len(k)) > p1 + z * np.sqrt(p1*(1-p1)/len(k)):
+        c.append('BN Larger Convincing')
+    else:
+        if p1 - z * np.sqrt(p1*(1-p1)/len(k)) > p2 + z * np.sqrt(p2*(1-p2)/len(k)):
+            c.append('NN Larger Convincing')
+        else:
+            c.append('ambiguous')
 
-file_path1 = 'outfile1.pkl'
+k = 'D:/pickles'
+file_path1 = os.path.join(k, 'outfile1.pkl')
 outfile1 = open(file_path1, 'wb')
 pickle.dump(dic1, outfile1)
 outfile1.close()
 
-file_path2 = 'outfile2.pkl'
+file_path2 = os.path.join(k, 'outfile2.pkl')
 outfile2 = open(file_path2, 'wb')
 pickle.dump(dic2, outfile2)
 outfile2.close()
 
-file_path3 = 'outfile3.pkl'
+file_path3 = os.path.join(k, 'outfile3.pkl')
 outfile3 = open(file_path3, 'wb')
 pickle.dump(dic3, outfile3)
 outfile3.close()
 
-file_path5 = 'outfile5.pkl'
+file_path4 = os.path.join(k, 'outfile4.pkl')
+outfile4 = open(file_path4, 'wb')
+pickle.dump(a, outfile4)
+outfile4.close()
+
+file_path5 = os.path.join(k, 'outfile5.pkl')
 outfile5 = open(file_path5, 'wb')
 pickle.dump(p_val1, outfile5)
 outfile5.close()
 
-file_path6 = 'outfile6.pkl'
+file_path6 = os.path.join(k, 'outfile6.pkl')
 outfile6 = open(file_path6, 'wb')
 pickle.dump(p_val2, outfile6)
 outfile6.close()
 
-file_path8= 'outfile8.pkl'
+file_path7 = os.path.join(k, 'outfile7.pkl')
+outfile7 = open(file_path7, 'wb')
+pickle.dump(b, outfile7)
+outfile7.close()
+
+file_path8= os.path.join(k, 'outfile8.pkl')
 outfile8 = open(file_path8, 'wb')
 pickle.dump(t_stats1, outfile8)
 outfile8.close()
 
-file_path9= 'outfile9.pkl'
+file_path9= os.path.join(k, 'outfile9.pkl')
 outfile9 = open(file_path9, 'wb')
 pickle.dump(t_stats2, outfile9)
 outfile9.close()
+
+file_path0= os.path.join(k, 'outfile0.pkl')
+outfile0 = open(file_path0, 'wb')
+pickle.dump(t_stats2, outfile0)
+outfile0.close()
