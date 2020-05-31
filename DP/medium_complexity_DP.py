@@ -98,23 +98,6 @@ def train(model, loss, optimizer, inputs, labels):
     optimizer.step()
     return output.item()
 
-def train_BN(model, loss, batch_size, optimizer, inputs, labels):
-    model.train()
-    for k in range(int(m/batch_size)):
-        inputs = Variable(inputs[k * batch_size: (k+1) * batch_size], requires_grad=False)
-        labels = Variable(labels[k * batch_size: (k+1) * batch_size], requires_grad=False)
-        # reset gradient
-        optimizer.zero_grad()
-        # forward loop
-        logits = model.forward(inputs)
-        output = loss.forward(logits, labels)
-        # backward
-        output.backward()
-        optimizer.step()
-    return output.item()
-
-
-
 
 def get_error(model, inputs, labels, d):
     model.eval()
@@ -203,11 +186,11 @@ def process(MC):
 
         # add some layers for model 2, this is with BN
         model2.add_module('FC1', torch.nn.Linear(n, neu))
-        model2.add_module('bn1', torch.nn.BatchNorm1d(neu, momentum=0.1))
         model2.add_module('relu1', torch.nn.ReLU())
+        model2.add_module('dp1', torch.nn.Dropout(0.3))
         model2.add_module('FC2', torch.nn.Linear(neu, neu))
-        model2.add_module('bn2', torch.nn.BatchNorm1d(neu, momentum=0.1))
         model2.add_module('relu2', torch.nn.ReLU())
+        model2.add_module('dp2', torch.nn.Dropout(0.3))
         model2.add_module('FC3', torch.nn.Linear(neu, 2))
 
         with torch.no_grad():
@@ -216,13 +199,13 @@ def process(MC):
             model2.FC3.weight = torch.nn.Parameter(model1.FC3.weight.clone().detach())
 
         # define optimizer
-        optimizer1 = optim.Adam(model1.parameters(), lr=0.1)
-        optimizer2 = optim.Adam(model2.parameters(), lr=0.1)
+        optimizer1 = optim.Adam(model1.parameters(), lr=0.03)
+        optimizer2 = optim.Adam(model2.parameters(), lr=0.03)
 
         # train until convergence
         pr1 = 1
         pr2 = 1
-        timeout = time.time() + 25
+        timeout = time.time() + 50
         while pr1 > predict_threshold and time.time() < timeout:
             train(model1, loss, optimizer1, XTrain, YTrain)
             pr1 = get_error(model1, XTrain, YTrain, 2 ** (n - 1))
@@ -363,5 +346,5 @@ outfile9.close()
 
 file_path0= os.path.join(k, 'outfile0.pkl')
 outfile0 = open(file_path0, 'wb')
-pickle.dump(c, outfile0)
+pickle.dump(t_stats2, outfile0)
 outfile0.close()
